@@ -12,3 +12,41 @@ https://youtu.be/xuxgxdbCPnY?si=KupdvfqKoeJjv5r8
 https://youtu.be/HvxmF0FUwrM?si=XV4bN6zXOsyV_xVn
 
 https://youtu.be/FoTMJFZ4wwg?si=CU09Rvfw-oi-D3Oi
+1.what are your responsibilities as a PostgreSQL database administrator? 
+pg_stat_activity;
+Daily Tasks
+	• Backups: Typically incremental or cumulative, with weekly full backups; logs are archived and emailed to the DBA upon failure.
+	• Database Alert Logs: Monitor for ERROR and FATAL logs, with automatic notifications via email or pagers.
+	• Operating System File Space, CPU, and I/O Statistics: Regular monitoring depending on system admin support.
+	• SQL Tuning Sets: Review the top 5 to 10 SQL statements.
+	• Tablespace Growth: Monitor extensions, partition management, and temporary tablespace.
+	• Replication: Ensure log shipping/application is in sync.
+	• Alert Logs: Monitor for intrusion detection and remove unused accounts.
+	• New Account Creation: Automate the process as much as possible.
+	• Personnel Security Changes: Require at least 24 hours' notice.
+	• Migrate Schema and Code Changes or Ad Hoc SQL Updates.
+	• Large Table Growth: Manage coalescing tablespace.
+	• Daily Change Log: Keep a log of daily changes to the database and share with relevant IT staff.
+Weekly Tasks
+	• Backups: Usually full backups.
+	• Cloning for Non-Production Databases: Automate or script the process.
+	• Tablespace Growth: Roll up daily monitoring to weekly.
+	• Patches/Upgrades: Implement milestone updates.
+Monthly Tasks
+	• Cloning for Non-Production Databases: Automate or script the process.
+	• Tablespace Growth Monitoring: Roll up weekly monitoring to monthly.
+	• Trends and Forecasts: Analyze CPU utilization, I/O stats, and logons.
+	• Password Changes on Production: Update for sys, system, and schema accounts.
+	• Practicing Recovery Scenarios.
+Quarterly Tasks
+	• Database Upgrades.
+	• Monitoring Tablespace Growth: Roll up monthly monitoring to yearly.
+Yearly Tasks
+	• Tablespace Growth: Generate a yearly report.
+	• Trends and Forecast Rollups.
+	• Attend PostgreSQL Conferences: Participate in regional or national pgconf groups.
+	• PostgreSQL Upgrades: Plan upgrades with downtime.
+	• Software Licensing and Warranty Renewals.
+	• Hardware Evaluation and Replacement.
+SSL Certificate Renewals.
+
