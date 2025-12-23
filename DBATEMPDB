@@ -1,4 +1,56 @@
-http://youtube.com/watch?v=Y1ZU1NU7wT8&t=26s
+A query that used to run in 2 seconds is now taking 2 minutes — walk me through how you’d troubleshoot and resolve it?
+- Confirm scope and baseline:
+- Compare current vs past execution plans and runtime metrics; check if data volume, stats, indexes, or schema changed.
+- Use Query Store to pull runtime regression and plan differences.
+- Check waits and resource profile:
+- Use sys.dm_exec_requests for wait_type, blocking_session_id, and tempdb spills warnings; correlate with sys.dm_os_wait_stats.
+- Inspect the current execution plan:
+- Look for missing indexes, scans vs seeks, cardinality estimate mismatches, spills (Sort/Hash warnings), implicit conversions, and parameter sniffing.
+- Immediate fixes (safe and targeted):
+- Update stats on involved tables/indexes if stale.
+- Add or tune indexes (covering, filtered) if plan shows scan/lookup bottlenecks.
+- Eliminate spills by increasing memory grant via query rewrite or appropriate indexes.
+- Address parameter sniffing using OPTION(RECOMPILE), OPTIMIZE FOR, or plan forcing via Query Store (temporary).
+- Remove implicit conversions by aligning data types and SARGable predicates.
+- Validate improvement:
+- Rerun under similar conditions; confirm reduced waits, stable plan, and runtime within target.
+---------------------------------------------------------------------------------------------------------------------------
+You see CPU usage at 100% on the SQL Server instance. How do you isolate the cause?
+- Isolate top CPU consumers:
+- Per‑query CPU: sys.dm_exec_query_stats with text/plan.
+- Active requests: sys.dm_exec_requests sorted by cpu_time.
+- Check wait profile and non‑SQL CPU:
+- If waits are SOS_SCHEDULER_YIELD, it’s CPU saturation; if not, bottleneck may be elsewhere.
+- Confirm external CPU consumers (AV scans, external processes) at the OS level.
+- Mitigate quickly:
+- Fix hot queries (indexes, rewrite, remove scalar UDFs, reduce rowset).
+- Enable in‑memory temp optimizations (e.g., reduce spills).
+- Right‑size MAXDOP and Cost Threshold for Parallelism to balance parallelism overhead.
+- Cache efficiency: avoid excessive ad‑hoc plans; consider forced parameterization or “Optimize for ad hoc workloads”.
+-----------------------------------------------------------------------------------------------------------------------------
+Users complain of blocking/locking; multiple sessions are stuck. How do you find which queries/blockers and resolve the situation?
+- Identify blockers and blocked chains:
+- Use sys.dm_exec_requests (blocking_session_id) and sys.dm_tran_locks to map chains.
+- Find the root blocker:
+- Sessions with blocking_session_id = 0 but others pointing to them are your blockers; inspect their transaction state, isolation level, and open_tran_count.
+- Resolve safely:
+- Short‑term: If business‑approved, KILL the session of the root blocker after assessing the rollback impact.
+- Mitigation: Implement RCSI (READ COMMITTED SNAPSHOT) to reduce read‑write blocking for OLTP workloads.
+- Tuning: Reduce transaction scope/duration, commit sooner, avoid “BEGIN TRAN” around slow queries, and ensure indexes support seek‑based access.
+---------------------------------------------------------------------------------------------------------------------------
+You detect frequent deadlocks in your OLTP database. What steps do you take to analyze, resolve, and prevent future deadlocks?
+- Capture and analyze deadlocks:
+- Use Extended Events “xml_deadlock_report” to get the graph; identify resource order and victim.
+- Look for patterns: same tables accessed in different order, missing indexes, long‑running range scans, or wide updates.
+- Fix patterns:
+- Consistent object order across procedures to avoid cyclical waits.
+- Add supporting indexes to narrow lock footprint (seek vs scan).
+- Reduce transaction time; move expensive computations outside the transaction.
+- Use row‑versioning (RCSI/SNAPSHOT) for read workloads when appropriate.
+- Locking hints as a last resort: UPDLOCK, ROWLOCK, or SERIALIZABLE only when justified.
+- Preventive controls:
+- Code reviews for transactional order, monitor with XE, alert on spikes, and track Query Store for affected statements
+-------------------------------------------------------------------------------------------------------------------------------
 
 https://www.youtube.com/watch?v=AKzxj95qBV8
 
