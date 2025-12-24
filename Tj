@@ -1,4 +1,911 @@
-As per the October roster, my designated week off was originally scheduled for 1st November. However, due to a change in the weekly off pattern, 1st November was marked as a working day, and I have accordingly reported to work on that day. In light of this adjustment, I would like to request a compensatory week off on 20th November 2025. Kindly let me know if this can be accommodated. 
-
-
-Requesting compensatory week off on 20th Nov 2025, as I worked on 1st Nov due to a change in the weekly off pattern
+Real-time scenario-based AWS EC2 Interview Questions & Answers:
+This will cover all aspects: EC2 basics, instances, storage, networking, security, auto-scaling, monitoring, cost optimization, high availability, DevOps, troubleshooting, and real-world scenarios.
+1 Q: What is Amazon EC2? 
+A: EC2 is a web service that provides resizable compute capacity in the cloud, allowing users to launch virtual servers with different instance types, operating systems, and configurations.
+2 Q: Scenario: You need a virtual server to host a web application for 1 year. Which EC2 pricing model is cost-efficient? 
+A: Reserved Instances for 1-year term to save costs compared to on-demand.
+3 Q: Difference between EC2 and Lambda? 
+A: EC2 = full server control, long-running workloads. Lambda = serverless, short-duration functions with no server management.
+4.Q: Scenario: You want ephemeral compute for batch jobs. Which instance type? 
+A: Spot Instances for cost savings.
+5.Q: What are EC2 instance types? 
+A: General Purpose (t3/t4), Compute Optimized (c5), Memory Optimized (r5), Storage Optimized (i3), GPU Instances (p4/g4), etc.
+6.Q: Scenario: Your app needs 4 vCPUs and 16GB RAM. Which instance type class? A: General Purpose (e.g., t3.xlarge) or Compute Optimized if CPU-bound.
+7.Q: Difference between on-demand, reserved, spot, and savings plan? A: On-demand = pay per hour, no commitment. Reserved = 1–3 year commitment, cheaper. Spot = spare capacity at discount, can be interrupted. Savings plan = flexible discounted pricing for compute usage.
+8.Q: Scenario: You need instances for dev/test environment that can stop/start frequently. Which pricing model? A: On-demand for flexibility or spot if interruptions are acceptable.
+9.Q: What is an Amazon Machine Image (AMI)? A: A pre-configured template containing OS, application server, and apps to launch EC2 instances.
+10.Q: Scenario: You need the same instance configuration in multiple regions. How? A: Copy the AMI to target regions and launch instances.
+11.Q: How do you access EC2 instances? A: SSH for Linux, RDP for Windows.
+12.Q: Scenario: You lost your private key for SSH. How to access Linux EC2? A: Stop instance, detach root volume, attach to another instance, update ~/.ssh/authorized_keys, reattach, start instance.
+13.Q: What are instance states? A: Pending, Running, Stopping, Stopped, Shutting-down, Terminated.
+14.Q: Scenario: Your EC2 instance is stopped but billing continues. Why? A: EBS volume attached and provisioned Elastic IP incurs charges.
+15.Q: What are Elastic IPs? A: Static public IPv4 addresses for EC2, which can be remapped to other instances.
+16.Q: Scenario: Elastic IP attached but not in use. Any cost implications? A: Yes, AWS charges for unattached Elastic IPs.
+17.Q: Difference between instance store and EBS? A: Instance store = ephemeral storage tied to instance lifecycle. EBS = persistent block storage.
+18.Q: Scenario: Instance store lost data after reboot. Why? A: Instance store is ephemeral; data is lost when instance stops or terminates.
+19.Q: What is EC2 User Data? A: Script executed during instance launch to configure the instance automatically.
+20.Q: Scenario: You need auto-installation of Apache/Nginx on instance launch. How? A: Add shell commands in User Data script.
+21.Q: What is EC2 metadata service? A: Provides instance info (instance-id, security groups, AMI ID) accessible via HTTP endpoint.
+22.Q: Scenario: You want dynamic configuration from instance itself. How? A: Use EC2 Instance Metadata Service (IMDS v2 recommended).
+23.Q: What is an instance profile? A: Attaches IAM role to EC2 instance for AWS API access.
+24.Q: Scenario: EC2 needs to read/write S3 bucket securely. How? A: Attach IAM role via instance profile with S3 permissions.
+25.Q: Can an EC2 instance have multiple ENIs? A: Yes, supported depending on instance type.
+26.Q: Scenario: You need private and public network interfaces on same instance. How? A: Attach multiple ENIs and configure routing/security groups.
+27.Q: What is a placement group? A: A logical grouping to influence instance placement (clustered, spread, partition) for performance/HA.
+28.Q: Scenario: Low-latency HPC workload. Which placement strategy? A: Cluster placement group.
+29.Q: Difference between Cluster, Spread, and Partition placement groups? A: Cluster = high throughput/low latency. Spread = isolate instances across hosts for failure domain. Partition = divides instances into logical partitions for HA.
+30.Q: Scenario: Need fault-tolerant architecture across AZs. Which placement group? A: Spread or Partition placement group.
+31.Q: Can you change EC2 instance type after launch? A: Yes, stop instance → modify instance type → start.
+32.Q: Scenario: You need more CPU for few hours. How to scale? A: Resize instance (vertical scaling) or use Auto Scaling group with launch template.
+33.Q: What is EC2 Auto Scaling? A: Automatically adjusts number of instances based on demand using scaling policies.
+34.Q: Scenario: Traffic spikes 10x daily at 6 PM. How to manage cost/performance? A: Use Auto Scaling scheduled policies to scale out/in at 6 PM and off-peak.
+35.Q: Difference between horizontal and vertical scaling? A: Horizontal = add/remove instances. Vertical = change instance type.
+36.Q: What is EC2 launch template? A: Template containing instance configuration (AMI, instance type, key pair, security groups) for launching instances.
+37.Q: Scenario: Multiple ASGs require same configuration. Solution? A: Use Launch Template across ASGs.
+38.Q: Can you attach EBS volume to running EC2? A: Yes, online attach/detach supported.
+39.Q: Scenario: Need increased storage for Linux EC2 without downtime. How? A: Use EBS elastic volume modification, extend filesystem online.
+40.Q: Can you encrypt EBS volumes? A: Yes, using KMS-managed keys.
+41.Q: Scenario: Need encryption for existing unencrypted volume. How? A: Take snapshot → copy with encryption enabled → create new volume → attach.
+42.Q: Difference between instance store-backed vs EBS-backed instance? A: Instance store-backed loses data on stop. EBS-backed persists.
+43.Q: What is EC2 hibernation? A: Saves instance RAM to EBS and stops instance; resumes quickly with OS state intact.
+44.Q: Scenario: Long-running process needs paused state. Solution? A: Enable EC2 hibernation.
+45.Q: Can you attach multiple EBS volumes to same instance? A: Yes, limited by instance type ENI and volume count limits.
+46.Q: How to monitor EC2 health? A: Use CloudWatch metrics, Status Checks, and CloudTrail.
+47.Q: Scenario: Instance failed System Status Check. Next steps? A: Stop/start instance, check underlying hardware, contact AWS if persistent.
+48.Q: Scenario: Instance failed Instance Status Check. Fix? A: Check OS boot logs, disk issues, SSH connectivity, kernel panic.
+49.Q: What is EC2 placement tenancy? A: Default (shared hardware) vs Dedicated host (physical server fully for you).
+50.Q: Scenario: Compliance requires dedicated physical host. Solution? A: Use Dedicated Host tenancy.
+51–100: Networking & Security
+51.Q: How does EC2 connect to VPC? A: EC2 is launched in a subnet within VPC; connectivity controlled via route tables, internet gateway, NAT, and security groups.
+52.Q: Scenario: EC2 needs private subnet access to internet. How? A: Use NAT gateway/instance in public subnet.
+53.Q: Difference between Security Groups and NACLs? A: Security Group = instance-level firewall (stateful). NACL = subnet-level firewall (stateless).
+54.Q: Scenario: All traffic blocked despite security group open. Why? A: Check NACL rules; may be denying traffic.
+55.Q: What is Elastic Load Balancer (ELB) with EC2? A: Distributes incoming traffic across multiple EC2 instances.
+56.Q: Scenario: Need high availability for web app. Solution? A: Use EC2 instances across AZs behind ALB.
+57.Q: Difference between ALB, NLB, CLB? A: ALB = HTTP/HTTPS, path-based routing. NLB = TCP, high performance. CLB = legacy.
+58.Q: Scenario: Need SSL termination at load balancer. Which ELB? A: Application Load Balancer.
+59.Q: What is VPC endpoint for EC2? A: Private connection to AWS services without internet access.
+60.Q: Scenario: EC2 must access S3 without public IP. Solution? A: Use S3 VPC Endpoint (Gateway type).
+61.Q: How to implement security patching on EC2? A: Use Systems Manager Patch Manager or manual updates via SSH/SSM.
+62.Q: Scenario: Need to patch hundreds of EC2 Linux instances automatically. Solution? A: Use AWS Systems Manager Patch Manager with patch baselines.
+63.Q: How to enable MFA for EC2 access? A: IAM policies + MFA enforced on AWS console/API; EC2 SSH uses key pair.
+64.Q: What is EC2 key pair? A: Public-private key pair for SSH/RDP authentication.
+65.Q: Scenario: Lost private key for production instance. Fix? A: Stop instance → detach volume → attach to another instance → add new key to authorized_keys.
+66.Q: How to restrict EC2 API access? A: Use IAM roles, policies, and VPC endpoint policies.
+67.Q: Scenario: EC2 instance compromised. Immediate action? A: Isolate in security group, snapshot volume, analyze, rotate keys/credentials.
+68.Q: Difference between default VPC and custom VPC? A: Default VPC = preconfigured with public subnets. Custom = fully configurable.
+69.Q: Scenario: Multi-tier architecture with public web, private app, DB subnet. How? 
+A: Public subnet → ALB + web EC2. Private subnet → app EC2 + DB RDS. NAT for outbound internet from private subnet.
+70.Q: How to enforce HTTPS only on EC2? A: Configure Security Groups to allow only 443; optionally enforce via ALB listener rules.
+71.Q: How to limit SSH access to specific IPs? A: Security Group inbound rule with specific CIDR.
+72.Q: Scenario: SSH from dynamic ISP IPs. Solution? A: Use bastion host with dynamic IP allowed, or VPN connection to VPC.
+73.Q: What is EC2 instance metadata service v2? A: Session-oriented API for instance metadata with IMDSv2 for security.
+74.Q: Scenario: Prevent SSRF attacks exploiting metadata service. Solution? A: Enforce IMDSv2 requirement.
+75.Q: How to enable private DNS hostname for EC2? A: Enable enableDnsHostnames and enableDnsSupport in VPC.
+76.Q: Scenario: EC2 cannot resolve DNS. Fix? A: Check VPC DNS settings, DHCP options, security group egress rules.
+77.Q: Difference between public and private IP on EC2? A: Public IP = internet routable. Private IP = internal VPC routing only.
+78.Q: Scenario: EC2 in private subnet needs RDP to Windows. How? A: Use bastion host or Systems Manager Session Manager.
+79.Q: What is source/destination check? A: Enabled by default; prevents instance from routing traffic not destined for itself.
+80.Q: Scenario: NAT instance cannot route traffic. Fix? A: Disable source/destination check.
+81.Q: How to attach multiple IP addresses to EC2? A: Use multiple private IPs via secondary ENI.
+82.Q: Scenario: Multi-homed EC2 for hybrid cloud. Approach? A: Attach multiple ENIs for public/private connections.
+83.Q: How to implement EC2 security compliance auditing? A: Use Config rules, CloudTrail, and Security Hub.
+84.Q: Scenario: Detect unauthorized AMI launches. How? A: CloudTrail + Config rules on AMI creation.
+85.Q: Difference between Security Group stateful vs NACL stateless? A: Security Group allows response traffic automatically. NACL must explicitly allow return traffic.
+86.Q: Scenario: Web server in public subnet but cannot serve clients. Check? A: SG inbound, route table, subnet ACL, internet gateway attachment.
+87.Q: Scenario: Windows EC2 cannot RDP. Likely reasons? A: Security group inbound 3389, Network ACL, firewall, or RDP service disabled.
+88.Q: How to configure bastion host securely? A: Public subnet, hardened AMI, limited SSH access, CloudWatch logging.
+89.Q: Scenario: Bastion host compromised. Steps? A: Isolate, snapshot volume, rotate keys, review CloudTrail, redeploy hardened host.
+90.Q: How to restrict EC2 internet access? A: Remove IGW/NAT, security group rules, NACLs, or use private subnet.
+91.Q: What is Security Group reference? A: Allows SG to reference another SG as source/destination.
+92.Q: Scenario: App server allowed only DB server to connect. How? A: Security group referencing DB server SG.
+93.Q: Can EC2 instances in different regions communicate privately? A: No direct private IP. Use VPN/Transit Gateway.
+94.Q: What is EC2 placement group impact on networking? A: Cluster PG → low-latency, high-throughput. Spread PG → isolated.
+95.Q: Scenario: EC2 network throughput low. Check? A: Instance type network limits, ENI attachment, placement group.
+96.Q: What is ENI? A: Elastic Network Interface, virtual NIC attached to EC2.
+97.Q: Scenario: High availability web servers. Solution? A: Multi-AZ deployment, ALB, Auto Scaling.
+98.Q: Scenario: Need private EC2 to access S3 with no IGW. How? A: Use S3 VPC Endpoint.
+99.Q: Scenario: NAT gateway fails. What happens? A: Private subnet loses internet connectivity.
+100.Q: Difference between NAT instance and NAT gateway? A: NAT gateway = managed, scalable, redundant. NAT instance = self-managed, less scalable.
+101–150: Storage – EBS, Instance Store, EFS, S3 Integration
+101.Q: Difference between instance store and EBS? A: Instance store = ephemeral, tied to instance lifecycle; EBS = persistent block storage.
+102.Q: Scenario: EC2 rebooted, instance store data lost. Why? A: Instance store is ephemeral; data does not persist across stop/start.
+103.Q: Can you attach EBS to running EC2? A: Yes, online attach/detach supported.
+104.Q: Scenario: Need to increase EBS volume size without downtime. How? A: Use Elastic Volume Modification → extend filesystem.
+105.Q: Can EBS volumes be encrypted? A: Yes, using AWS KMS-managed keys.
+106.Q: Scenario: Existing unencrypted EBS. How to encrypt? A: Take snapshot → copy with encryption enabled → create new volume → attach.
+107.Q: What is EBS volume types? A: gp3/gp2 (General Purpose SSD), io2/io1 (Provisioned IOPS SSD), st1 (Throughput Optimized HDD), sc1 (Cold HDD).
+108.Q: Scenario: High IOPS database workload. Which volume type? A: io2/io1 with provisioned IOPS.
+109.Q: How does EBS snapshot work? A: Incremental backup stored in S3.
+110.Q: Scenario: Need cross-region backup. Solution? A: Copy EBS snapshot to target region.
+111.Q: What is EFS? A: Elastic File System – fully managed, scalable NFS file system for multiple EC2 access.
+112.Q: Scenario: Multiple EC2 instances need shared filesystem. Which service? A: EFS with NFS mount.
+113.Q: Difference between EBS and EFS? A: EBS = block storage, one instance; EFS = file storage, multiple instances concurrently.
+114.Q: Scenario: EC2 instance needs temporary storage. Which option? A: Instance store for ephemeral fast storage.
+115.Q: Can EBS volumes be attached to multiple instances? A: No, except EBS Multi-Attach supported for io1/io2 volumes in Linux.
+116.Q: Scenario: EC2 in multi-AZ with shared volume. Solution? A: Use EFS or FSx for shared access, EBS Multi-Attach in same AZ.
+117.
+Q: How to monitor EBS performance? A: CloudWatch metrics: VolumeReadOps, VolumeWriteOps, VolumeReadBytes, VolumeWriteBytes, BurstBalance.
+118.
+Q: Scenario: VolumeWriteOps high, instance slow. Solution? A: Increase volume type/IOPS, check instance network limits.
+119.
+Q: How to resize EFS storage? A: Automatic scaling; no manual resizing needed.
+120.
+Q: Scenario: EC2 cannot mount EFS. Check? A: Security group allows NFS (2049), correct VPC/subnet, mount target exists.
+121–150: Storage – EBS/EFS, S3, Snapshots
+121.
+Q: Scenario: EC2 root volume running out of space. How to extend? A: Use Elastic Volume Modification → extend EBS volume → resize filesystem (xfs_growfs or resize2fs).
+122.
+Q: Scenario: EBS snapshot restores slowly. Solution? A: Enable Fast Snapshot Restore for region-specific instant availability.
+123.
+Q: EC2 needs high-throughput storage for big data. Options? A: Use st1 (Throughput Optimized HDD) or EFS depending on shared access needs.
+124.
+Q: Scenario: Multi-instance application requires shared file system. How? A: Mount EFS with NFS across instances.
+125.
+Q: Can EBS volumes be resized while attached? A: Yes, online resizing supported; extend filesystem afterward.
+126.
+Q: Scenario: Instance requires both high IOPS and encryption. Which volume type? A: io2/io2 Block Express with KMS encryption.
+127.
+Q: EC2 needs cross-region backup for compliance. How? A: Copy EBS snapshots or AMIs to target region.
+128.
+Q: Scenario: EBS volume attached to wrong instance. Solution? A: Detach, attach to correct instance; ensure OS recognizes device.
+129.
+Q: What is EBS Multi-Attach? A: io1/io2 volumes can be attached to multiple Linux instances in the same AZ for shared access.
+130.
+Q: Scenario: Application requires read-only shared storage across AZs. How? A: Use S3 or EFS (multi-AZ support).
+131.
+Q: How to monitor EBS performance? A: CloudWatch metrics: VolumeReadOps, VolumeWriteOps, VolumeThroughputPercentage, BurstBalance.
+132.
+Q: Scenario: VolumeWriteOps high, performance lag. Solution? A: Increase IOPS, upgrade instance type, check network limits.
+133.
+Q: EC2 requires backup of ephemeral data. How? A: Copy data to EBS snapshot or S3, as instance store is ephemeral.
+134.
+Q: Scenario: Need encrypted EBS after instance launch. How? A: Snapshot existing volume → copy snapshot with encryption → create encrypted volume → attach.
+135.
+Q: What is difference between gp2 and gp3 EBS volumes? A: gp3 = provisioned IOPS & throughput independently; cheaper & better performance flexibility.
+136.
+Q: Scenario: Multiple EC2s need access to shared file system. Solution? A: Use EFS with NFS mounts; scalable & concurrent access.
+137.
+Q: EC2 needs high IOPS for database. Which volume type? A: io2 Block Express for sub-millisecond latency.
+138.
+Q: Scenario: EBS snapshot costs rising. Solution? A: Delete old snapshots, automate with Lifecycle Manager policies.
+139.
+Q: EC2 ephemeral storage lost on stop. Solution for persistence? A: Migrate to EBS or EFS depending on shared access requirements.
+140.
+Q: Scenario: Need to restore instance quickly in DR. Solution? A: Use AMI + snapshot → launch new EC2 quickly.
+141.
+Q: EC2 needs cross-AZ shared storage. Option? A: EFS with mount targets in each AZ.
+142.
+Q: Scenario: Large dataset read-heavy, multiple instances. Which storage? A: EFS (for shared read), S3 (for object-based), or combination.
+143.
+Q: How to secure EBS volumes? A: Enable encryption (KMS), IAM roles for access, snapshots encrypted.
+144.
+Q: Scenario: Volume attached but not recognized by OS. Fix? A: Rescan devices, check /dev/ path, mount filesystem.
+145.
+Q: How to migrate instance store data to persistent storage? A: Copy files to EBS volume or S3 before instance termination.
+146.
+Q: Scenario: EC2 needs high throughput temporary storage. Option? A: Instance store for ephemeral fast storage.
+147.
+Q: EC2 EBS volume detached accidentally. How to recover? A: Reattach; ensure filesystem integrity and mount properly.
+148.
+Q: Scenario: EC2 root volume corrupted. How to recover? A: Detach volume, attach to rescue instance, repair filesystem, reattach.
+149.
+Q: EBS snapshot can restore to larger volume? A: Yes, volume size can be increased during restore.
+150.
+Q: Scenario: EC2 requires daily automated backup. How? A: Use EBS snapshot with Lifecycle Manager or CloudWatch scheduled Lambda scripts.
+151–200: Auto Scaling & High Availability
+151.
+Q: What is EC2 Auto Scaling? A: Automatically adjusts number of EC2 instances based on load.
+152.
+Q: Scenario: Traffic spikes at 6 PM daily. How to scale? A: Use scheduled scaling policies in Auto Scaling Group (ASG).
+153.
+Q: Difference between horizontal and vertical scaling? A: Horizontal = add/remove instances; Vertical = change instance type.
+154.
+Q: Scenario: Need to scale memory-heavy workload. Approach? A: Vertical scaling: change to higher memory instance.
+155.
+Q: How does ASG detect unhealthy instance? A: Health checks (EC2 status checks, ELB health checks).
+156.
+Q: Scenario: ASG not replacing failed instance. Check? A: Ensure health check type and grace period configured correctly.
+157.
+Q: What is launch configuration vs launch template? A: Launch configuration = static template; Launch template = versioned, flexible, supports multiple ASGs.
+158.
+Q: Scenario: Multiple ASGs with same config. Solution? A: Use Launch Template.
+159.
+Q: How to implement Multi-AZ high availability? A: Deploy instances across multiple AZs, use ELB.
+160.
+Q: Scenario: Single AZ fails, app downtime. Fix? A: Deploy Multi-AZ ASG with cross-AZ load balancer.
+161.
+Q: What is ELB health check? A: Periodically pings instance endpoint; unhealthy instances removed from load balancer.
+162.
+Q: Scenario: ELB keeps removing instance. Check? A: Security group, response codes, app listening port.
+163.
+Q: Difference between AZ and region? A: Region = geographical area; AZ = isolated datacenter within region.
+164.
+Q: Scenario: Cross-region disaster recovery. How to deploy EC2? A: Replicate AMI, data, and ASG in secondary region; optionally use Route53 for failover.
+165.
+Q: How to handle sticky sessions? A: Enable ELB session stickiness or use client-side cookies.
+166.
+Q: Scenario: Need minimum 5 instances always running. How? A: Set ASG MinSize=5, DesiredCapacity=5.
+167.
+Q: Scenario: Reduce over-provisioning at night. How? A: Use scheduled scaling policies or target tracking with metrics.
+168.
+Q: What is target tracking scaling policy? A: Auto scale instances to maintain metric (e.g., CPUUtilization) near target.
+169.
+Q: Scenario: App CPU < 20% but ASG not scaling down. Check? A: Cooldown period may prevent immediate scale-in.
+170.
+Q: Difference between ASG scaling policies: simple, step, target tracking? A: Simple = one step, step = multiple step thresholds, target tracking = automatic based on metric.
+171–200: Auto Scaling & High Availability
+171.
+Q: Scenario: Auto Scaling not triggering. Check? A: Verify CloudWatch metric, scaling policy, cooldown period, min/max instances.
+172.
+Q: ASG scale-in fails. Possible reasons? A: Lifecycle hooks delaying termination, instance in service with ELB, cooldown period.
+173.
+Q: Scenario: Scheduled scale-out for batch jobs. Approach? A: Configure scheduled scaling policy with exact time and instance count.
+174.
+Q: ASG instance unhealthy but not replaced. Why? A: Incorrect health check type (EC2 vs ELB), grace period too long.
+175.
+Q: Scenario: Maintain 3 instances minimum. How? A: ASG MinSize=3, DesiredCapacity=3.
+176.
+Q: How to implement Multi-AZ ASG? A: Launch instances across multiple AZs; ELB distributes traffic.
+177.
+Q: Scenario: ELB removes healthy instance. Why? A: Health check misconfiguration, app listening port, SG restrictions.
+178.
+Q: Difference between step and target tracking policy? A: Step = different actions for thresholds; target tracking = maintain metric at target.
+179.
+Q: Scenario: Scale down not reducing cost. Why? A: MinSize too high, ASG cooldown, metric thresholds not met.
+180.
+Q: Scheduled vs dynamic scaling? A: Scheduled = known time events; dynamic = real-time metric-based.
+181.
+Q: Scenario: CPU < 20% but instances not terminated. Solution? A: Check cooldown period, metric evaluation period, step scaling thresholds.
+182.
+Q: ASG cross-region support? A: No; ASG operates per region; use multiple ASGs for cross-region DR.
+183.
+Q: Scenario: Batch processing spikes CPU. How to handle? A: Use scheduled or target-tracking ASG to scale out during batch.
+184.
+Q: ASG minimum instances for SLA? A: Set MinSize to maintain required availability.
+185.
+Q: Scenario: AZ failure. How ASG maintains availability? A: Instances launched in other AZs automatically to meet desired capacity.
+186.
+Q: Health check types in ASG? A: EC2 (instance running), ELB (application responsiveness).
+187.
+Q: Scenario: ASG not replacing unhealthy instance. Check? A: Health check configuration, ELB attachment, termination policies.
+188.
+Q: Lifecycle hooks purpose? A: Pause scale-in/out to perform custom actions (drain connections, backup).
+189.
+Q: Scenario: Need zero-downtime deployment with ASG. How? A: Use Blue/Green deployment, replace instances gradually.
+190.
+Q: ASG integration with CloudWatch? A: Metrics trigger scaling policies (CPU, Network, custom metrics).
+191.
+Q: Scenario: ASG scaling too slow. How to improve? A: Reduce cooldown period, use step policies, adjust evaluation periods.
+192.
+Q: ASG scaling limits? A: MaxSize for upper limit; MinSize for lower limit.
+193.
+Q: Scenario: Multi-AZ EC2 HA with ASG & ELB. How? A: Deploy instances across AZs, ELB distributes traffic; ASG maintains capacity.
+194.
+Q: Target tracking policy example? A: Maintain average CPU at 50% → ASG scales up/down automatically.
+195.
+Q: Scenario: ASG scales incorrectly during low load. Check? A: Verify CloudWatch metric, evaluation period, step scaling thresholds.
+196.
+Q: Spot instances in ASG. Scenario? A: Configure Mixed Instances Policy → on-demand base, spot for bursts.
+197.
+Q: Scenario: ASG replacing healthy instance repeatedly. Fix? A: Health check misconfigured; check termination policies.
+198.
+Q: How to test ASG scaling policies? A: Simulate load via stress testing or CloudWatch metrics manipulation.
+199.
+Q: Scenario: Need consistent AZ distribution for instances. How? A: Set availability zones in ASG configuration.
+200.
+Q: Scenario: ASG not scaling due to metric delay. Fix? A: Enable detailed monitoring (1-min granularity).
+201–250: Monitoring & CloudWatch
+201.
+Q: How to monitor EC2 performance? A: CloudWatch metrics: CPU, NetworkIn/Out, DiskRead/Write, StatusChecks, Memory (custom).
+202.
+Q: Scenario: Instance CPU high but CloudWatch normal. Why? A: Memory/IO bottleneck not visible in default metrics; enable detailed monitoring or custom metrics.
+203.
+Q: What are CloudWatch Alarms? A: Notifications triggered when metric crosses threshold.
+204.
+Q: Scenario: Receive repeated alarms for same instance. How to reduce? A: Adjust evaluation periods, enable OK state suppression, tune thresholds.
+205.
+Q: What is CloudWatch Logs? A: Centralized logging for EC2 (application/system logs).
+206.
+Q: Scenario: Application log monitoring for errors. Solution? A: Install CloudWatch Agent, push logs to CloudWatch Logs.
+207.
+Q: How to monitor ELB + EC2 metrics? A: CloudWatch metrics: RequestCount, Latency, HealthyHostCount.
+208.
+Q: Scenario: Latency spikes on EC2. How to investigate? A: Check CloudWatch CPU/Memory/Network, ELB metrics, application logs.
+209.
+Q: Difference between basic and detailed monitoring? A: Basic = 5-min intervals, Detailed = 1-min intervals (cost extra).
+210.
+Q: Scenario: You need 1-min granularity for auto-scaling. Solution? A: Enable detailed monitoring.
+211–250: Monitoring & CloudWatch
+211.
+Q: Scenario: Need memory monitoring for EC2. How? A: Enable CloudWatch Agent and push custom memory metrics.
+212.
+Q: EC2 network performance metrics in CloudWatch? A: NetworkIn, NetworkOut, NetworkPacketsIn, NetworkPacketsOut.
+213.
+Q: Scenario: Instance shows high CPU but app slow. Check? A: Memory/IO metrics, CloudWatch Logs, Disk/Network throughput.
+214.
+Q: CloudWatch alarm triggers EC2 reboot. How? A: Alarm → SNS → Lambda → Systems Manager or API call to reboot instance.
+215.
+Q: Scenario: ELB latency high. Investigate? A: Check EC2 CPU/memory, network metrics, application logs, placement group.
+216.
+Q: Detailed vs basic monitoring? A: Basic = 5-min; Detailed = 1-min intervals.
+217.
+Q: Scenario: Auto Scaling requires 1-min metrics. Solution? A: Enable detailed monitoring on EC2.
+218.
+Q: How to aggregate CloudWatch logs across multiple EC2s? A: Use centralized CloudWatch Logs group with subscriptions.
+219.
+Q: Scenario: Alarm flapping frequently. Fix? A: Adjust threshold, evaluation periods, or use anomaly detection.
+220.
+Q: CloudWatch custom metrics example? A: App response time, queue length, memory utilization.
+221.
+Q: Scenario: EC2 app crashes silently. How to debug? A: CloudWatch Logs, X-Ray tracing, detailed monitoring.
+222.
+Q: Scenario: Disk IO bottleneck detected. Fix? A: Upgrade EBS volume, enable EBS-optimized instance, check instance type.
+223.
+Q: EC2 CPU credit exhaustion scenario. Solution? A: Burstable T2/T3 instance, monitor CPUCreditBalance, consider larger instance.
+224.
+Q: Scenario: CloudWatch alarm triggers at wrong time. Fix? A: Adjust evaluation period, threshold, or metric aggregation.
+225.
+Q: EC2 application latency monitoring. Tool? A: CloudWatch metrics, CloudWatch Logs, X-Ray traces.
+226.
+Q: Scenario: Need historical metric analysis. Solution? A: CloudWatch metrics history, export to S3, use Athena/QuickSight.
+227.
+Q: Scenario: EC2 auto-recovery trigger fails. How to investigate? A: Check CloudWatch Alarm, IAM permissions, Auto Recovery enabled.
+228.
+Q: Scenario: Multiple EC2 metrics need centralized alerting. Solution? A: CloudWatch dashboard + alarms + SNS notifications.
+229.
+Q: Scenario: Instance health checks failing intermittently. Fix? A: Analyze system logs, ELB health, network config, instance metrics.
+230.
+Q: CloudWatch Logs retention setting? A: Configure per log group; delete after N days to save costs.
+231.
+Q: Scenario: Need aggregated metrics across AZs. How? A: CloudWatch metric math, or consolidate via CloudWatch dashboards.
+232.
+Q: Scenario: Need notification if EC2 disk >80% used. A: CloudWatch Agent → custom disk metric → Alarm → SNS.
+233.
+Q: Scenario: Metrics delayed due to high load. Fix? A: Enable detailed monitoring, check CloudWatch quota.
+234.
+Q: CloudWatch anomaly detection use case? A: Detect unusual CPU, memory, or network patterns automatically.
+235.
+Q: Scenario: EC2 stops sending metrics after reboot. Fix? A: CloudWatch Agent must start on boot; check IAM role.
+236.
+Q: Scenario: Custom app logs not appearing. Fix? A: Verify CloudWatch Logs agent config, permissions, path.
+237.
+Q: Scenario: EC2 auto-scale not triggering due to metrics. Why? A: CloudWatch metric granularity insufficient, metric delay.
+238.
+Q: Scenario: Monitoring multiple instances with same app. Solution? A: Tag instances → CloudWatch metric filters → dashboards per environment.
+239.
+Q: Scenario: Alert only if sustained high CPU. How? A: Set evaluation periods and threshold accordingly.
+240.
+Q: Scenario: Need to monitor ephemeral storage. How? A: CloudWatch Agent → disk metrics → create alarm.
+241.
+Q: CloudWatch Events vs CloudWatch Alarms? A: Events = schedule/trigger actions; Alarms = notify on thresholds.
+242.
+Q: Scenario: Multiple apps on same EC2. Monitor separately? A: Use custom namespace metrics in CloudWatch.
+243.
+Q: Scenario: EC2 network spikes. How to investigate? A: Check CloudWatch NetworkIn/Out, packet loss, instance type limits.
+244.
+Q: Scenario: Sudden memory spikes. Solution? A: CloudWatch custom metrics → trigger alarm → auto-restart or scale.
+245.
+Q: EC2 disk burst metrics? A: BurstBalance metric for gp2 volumes.
+246.
+Q: Scenario: EBS IOPS throttled. Fix? A: Upgrade to higher provisioned IOPS or gp3 volume.
+247.
+Q: Scenario: EC2 monitoring cost too high. Solution? A: Consolidate metrics, remove unnecessary detailed monitoring, archive logs.
+248.
+Q: Scenario: Track application errors across EC2 fleet. How? A: CloudWatch Logs group + Metric Filters + Alarms.
+249.
+Q: Scenario: EC2 instance unresponsive, metrics normal. Why? A: OS-level deadlock, app crash; check logs, X-Ray, SSM session.
+250.
+Q: Scenario: Historical analysis of EC2 CPU. Solution? A: Export CloudWatch metrics to S3 → analyze via Athena/QuickSight.
+251–300: Cost Optimization & Pricing
+251.
+Q: EC2 pricing models? A: On-demand, Reserved, Spot, Savings Plans, Dedicated Hosts.
+252.
+Q: Scenario: Dev environment, stop/start frequently. Which model? A: On-demand for flexibility or spot if interruptions acceptable.
+253.
+Q: Scenario: Long-running production app. Cost-effective? A: Reserved Instances or Compute Savings Plan.
+254.
+Q: What is Spot instance? A: Spare capacity at discount; can be interrupted.
+255.
+Q: Scenario: Spot instance terminated mid-workload. Solution? A: Use Spot Fleet with diversifications or checkpointing in app.
+256.
+Q: Difference between RI Standard and Convertible? A: Standard = fixed instance type, cheaper; Convertible = flexible instance type, slightly higher cost.
+257.
+Q: Scenario: Budget alert for EC2 overspend. How? A: AWS Budgets → Cost Alerts → Email/SNS notifications.
+258.
+Q: How to reduce EBS cost? A: Delete unused volumes, snapshots; use gp3 instead of gp2; resize volumes.
+259.
+Q: Scenario: Auto Scaling creates too many instances at night. Solution? A: Use scheduled scaling policies or limit max capacity.
+260.
+Q: Spot + On-demand hybrid. Scenario? A: Use On-demand for base capacity, Spot for bursts.
+261–300: Cost Optimization & Pricing (missing)
+261.
+Q: Scenario: Production instance running 24/7, cost high. How? A: Use Reserved Instances or Compute Savings Plan.
+262.
+Q: Scenario: Spot instance terminated mid-task. Solution? A: Use Spot Fleet or checkpointing.
+263.
+Q: Scenario: Multiple dev/test instances idle. How to reduce cost? A: Schedule stop/start via Lambda or Instance Scheduler.
+264.
+Q: Scenario: Long-term dev instances. Cost-effective? A: Reserved Instances for dev environments.
+265.
+Q: Scenario: EC2 + EBS underutilized. Cost saving? A: Right-size instance, delete unused volumes, snapshot lifecycle.
+266.
+Q: Spot + On-demand hybrid. Use case? A: Base load on On-demand, burst via Spot for cost savings.
+267.
+Q: Scenario: Need flexible instance type. Solution? A: Convertible Reserved Instances.
+268.
+Q: Scenario: Budget alerts for EC2. How? A: AWS Budgets → set threshold → SNS notifications.
+269.
+Q: Scenario: EBS snapshot costs high. Fix? A: Enable lifecycle policies, delete older snapshots.
+270.
+Q: EC2 pricing options? A: On-demand, Reserved, Spot, Savings Plans, Dedicated Hosts.
+271.
+Q: Scenario: Spot instance frequently interrupted. Solution? A: Diversify instance types and AZs in Spot Fleet.
+272.
+Q: Scenario: Minimize cost for dev cluster. Solution? A: Use Spot, schedule off hours, delete unused resources.
+273.
+Q: Scenario: Cost monitoring for multiple accounts. How? A: Use AWS Organizations + Cost Explorer.
+274.
+Q: Scenario: EC2 cost spike. How to analyze? A: CloudWatch metrics + Cost Explorer + Tags analysis.
+275.
+Q: Scenario: Long-running workloads with predictable traffic. Optimal model? A: Reserved Instances or Savings Plan.
+276.
+Q: Scenario: Temporary batch workloads. Cost-effective? A: Spot instances or On-demand depending on tolerance.
+277.
+Q: Scenario: EBS volumes idle. Cost saving? A: Snapshot and delete unused volumes.
+278.
+Q: Scenario: Multi-AZ ASG scaling increases cost. Solution? A: Scheduled scaling, use Spot for extra capacity.
+279.
+Q: Scenario: Cross-region backup cost high. Fix? A: Use S3 lifecycle policies, compress snapshots.
+280.
+Q: Scenario: Spot instance lost, job critical. Solution? A: Maintain base On-demand instance, use Spot for burst.
+281.
+Q: Scenario: Reserved instance underutilized. How to fix? A: Modify RI or use Convertible RI.
+282.
+Q: Scenario: Need cost alert per project. How? A: Use tags + Cost Explorer filters + Budgets.
+283.
+Q: Scenario: Large fleet, want automated rightsizing. How? A: Use AWS Compute Optimizer recommendations.
+284.
+Q: Scenario: Multiple instance types in ASG. Cost-optimal? A: Use Mixed Instances Policy with cost-optimized weighting.
+285.
+Q: Scenario: Reducing dev/test spend. How? A: Stop instances at night, Spot instances, consolidated billing.
+286.
+Q: Scenario: EC2 + EBS combination, cost analysis. How? A: Use Cost Explorer, filter by resource type.
+287.
+Q: Scenario: High IO workloads expensive. Optimize? A: Use gp3 volume type, provisioned IOPS carefully.
+288.
+Q: Scenario: Budget alert delay. How to ensure near real-time? A: Use CloudWatch billing metrics + SNS notifications.
+289.
+Q: Scenario: Temporary project in multiple regions. How to reduce cost? A: Use Spot, limit multi-region replication, delete resources post-project.
+290.
+Q: Scenario: EBS snapshot lifecycle policies. Benefits? A: Automates deletion, reduces cost, maintains compliance.
+291.
+Q: Scenario: Long-running dev instance using On-demand. Alternative? A: Reserved Instance or Savings Plan.
+292.
+Q: Scenario: Cost optimization for ASG with mixed workloads. A: Spot for flexible workloads, On-demand for critical base load.
+293.
+Q: Scenario: EBS throughput optimized for batch jobs. Cost-effective? A: Use st1 (Throughput Optimized HDD) instead of SSD.
+294.
+Q: Scenario: EC2 monitoring costs high. Solution? A: Remove unnecessary detailed metrics, aggregate metrics.
+295.
+Q: Scenario: Frequent snapshot creation cost. Fix? A: Use lifecycle manager with retention policies.
+296.
+Q: Scenario: Cross-account EC2 cost visibility. How? A: Use AWS Organizations + Cost Explorer.
+297.
+Q: Scenario: High CPU instances. Right-sizing approach? A: Use smaller instance with optimized CPU or Reserved for steady load.
+298.
+Q: Scenario: Spot interruption affects SLA. Mitigation? A: Maintain base On-demand instances, checkpoint workloads.
+299.
+Q: Scenario: Multi-region deployment for HA, cost optimization? A: Use minimal required instances in secondary region; replicate only critical data.
+300.
+Q: Scenario: EBS IO bottleneck causing extra costs. Solution? A: Optimize volume type, consider gp3 with provisioned IOPS, monitor usage.
+301–350: High Availability & Fault Tolerance
+301.
+Q: Scenario: Single AZ fails, app downtime. Solution? A: Multi-AZ deployment with ELB and ASG.
+302.
+Q: Difference between Multi-AZ and Multi-Region? **
+A:** Multi-AZ = within region; Multi-Region = geographically separate.
+303.
+Q: Scenario: EC2 instance fails due to hardware. Next step? A: Stop/start instance or ASG replaces unhealthy instance.
+304.
+Q: How to achieve cross-region failover? A: Replicate AMIs, volumes, use Route53 failover policies.
+305.
+Q: Scenario: Need ultra-low-latency between EC2s. Solution? A: Cluster placement group.
+306.
+Q: How to handle AZ failures for databases? A: Use RDS Multi-AZ or DB replication.
+307.
+Q: Difference between spread and cluster placement group? A: Spread = isolate for HA; Cluster = low-latency/high throughput.
+308.
+Q: Scenario: EC2 instance becomes unresponsive. How to recover? A: Check system status, snapshot volume, redeploy instance.
+309.
+Q: How to implement backup for EC2? A: EBS snapshots, AMI creation, S3 storage.
+310.
+Q: Scenario: Frequent AMI backups cause costs. Solution? A: Use lifecycle policies to delete old AMIs/snapshots.
+311–350: High Availability & Fault Tolerance (missing)
+311.
+Q: Scenario: Single AZ fails, app goes down. How to prevent? A: Deploy EC2 instances across multiple AZs with ASG + ELB for failover.
+312.
+Q: Scenario: Instance fails due to hardware. How to recover? A: Stop/start instance or rely on ASG health checks to replace.
+313.
+Q: EC2 high availability best practice? A: Multi-AZ deployment, ELB distribution, health checks, ASG.
+314.
+Q: Scenario: Database instance needs HA. Solution? A: Use RDS Multi-AZ or EC2 + replication setup across AZs.
+315.
+Q: Scenario: Ultra-low-latency instance communication needed. Solution? A: Cluster placement group for low-latency network.
+316.
+Q: Difference between cluster and spread placement groups? A: Cluster = low-latency/high-throughput; Spread = fault isolation.
+317.
+Q: Scenario: EC2 unresponsive. How to troubleshoot? A: Check CloudWatch metrics, system logs, SSM session, network.
+318.
+Q: Scenario: Backup required before patching. How? A: Take EBS snapshot or AMI for recovery.
+319.
+Q: Scenario: Restore failed instance quickly. Solution? A: Launch from latest AMI snapshot.
+320.
+Q: Scenario: EBS root volume corrupted. Recovery? A: Detach, attach to rescue instance, repair, reattach.
+321.
+Q: EC2 multi-AZ load balancing. How? A: Deploy in multiple AZs + ELB; ASG ensures desired capacity.
+322.
+Q: Scenario: Instance in one AZ cannot communicate with another. Fix? A: Verify VPC/subnet routing, SGs, NACLs.
+323.
+Q: Scenario: EC2 instance needs cross-region replication. Solution? A: Copy AMI or snapshot to target region, launch new instance.
+324.
+Q: Scenario: AZ fails, traffic redirected. How? A: ELB detects healthy instances in other AZs; Route53 can be used for failover.
+325.
+Q: Scenario: Single instance critical, want auto-recovery. Solution? A: Enable EC2 Auto-Recovery via CloudWatch Alarm.
+326.
+Q: Scenario: Placement group limits reached. Fix? A: Launch fewer instances or use multiple placement groups.
+327.
+Q: Scenario: Multi-AZ deployment, AZ capacity issue. Solution? A: Launch in alternative AZ or use ASG flexibility.
+328.
+Q: Scenario: High availability testing. Approach? A: Simulate AZ failure, validate failover, monitor metrics.
+329.
+Q: Scenario: EC2 system status check fails repeatedly. Solution? A: Stop/start instance; contact AWS if hardware failure persists.
+330.
+Q: Scenario: Application requires synchronous replication across AZs. Solution? A: Use database replication or shared EFS for file sync.
+331.
+Q: Scenario: Instance store needed for high-speed cache. How to manage HA? A: Use ASG + ephemeral storage, recover on instance replacement.
+332.
+Q: Scenario: ELB health check removes healthy instance. Fix? A: Verify app port, SG rules, health check path/response codes.
+333.
+Q: Scenario: Multi-AZ database read replication. Approach? A: Use read replicas (RDS or self-managed replication).
+334.
+Q: Scenario: Backup strategy for HA EC2. How? A: EBS snapshots, AMI, cross-AZ or cross-region copies.
+335.
+Q: Scenario: EC2 cluster placement required. Which instances? A: Instances supporting placement groups (e.g., C5, M5).
+336.
+Q: Scenario: High network throughput bottleneck. Fix? A: Enable Enhanced Networking, select higher network instance type.
+337.
+Q: Scenario: EC2 loses connectivity after reboot. Fix? A: Check ENI attachment, private/public IP, SG/NACL rules.
+338.
+Q: Scenario: Multi-AZ failover for database. How to minimize downtime? A: Pre-warm standby, synchronous replication, automated failover scripts.
+339.
+Q: Scenario: Application state lost on failover. Solution? A: Use external session store (Redis, DynamoDB) or shared storage.
+340.
+Q: EC2 instance health check vs system status check? A: Instance = application/OS health; system = underlying hardware.
+341.
+Q: Scenario: ASG replacing instances too slowly. How to improve? A: Reduce cooldown, check launch template, scale-out policy.
+342.
+Q: Scenario: Instance terminated accidentally. How to recover? A: Restore from AMI snapshot.
+343.
+Q: Scenario: Temporary high throughput workload. Solution? A: Use Spot or burstable instances + placement group.
+344.
+Q: Scenario: Multi-AZ deployment costs high. Optimization? A: Use minimal instances in secondary AZ for standby, scale up only when needed.
+345.
+Q: Scenario: Instance stuck pending. Fix? A: Try alternative AZ or instance type.
+346.
+Q: Scenario: Instance terminated during ASG scale-in. Prevention? A: Lifecycle hook to drain connections before termination.
+347.
+Q: Scenario: EBS Multi-Attach for shared database. Limitation? A: Supported only for io1/io2 volumes, Linux instances, same AZ.
+348.
+Q: Scenario: Application requires synchronous replication across regions. Solution? A: Use database-level replication; Route53 latency-based routing.
+349.
+Q: Scenario: Instance unreachable post-patch. Fix? A: Check security group, OS firewall, service logs, revert patch if needed.
+350.
+Q: Scenario: EC2 cluster HA testing. Steps? A: Simulate instance/AZ failures, verify failover, monitor metrics, validate SLA.
+351–400: DevOps & Automation
+351.
+Q: How to automate EC2 provisioning? A: Use CloudFormation, Terraform, or CDK scripts.
+352.
+Q: Scenario: Hundreds of instances need same config. How? A: Use Launch Templates or automation scripts (Terraform/CloudFormation).
+353.
+Q: How to configure EC2 using scripts? A: Use User Data during launch or Systems Manager Run Command.
+354.
+Q: Scenario: Deploy app updates to multiple instances. How? A: Use SSM Run Command or CodeDeploy.
+355.
+Q: Can Terraform manage EC2? A: Yes, with aws_instance, aws_launch_template, aws_autoscaling_group.
+356.
+Q: Scenario: Need versioned EC2 deployment. How? A: Use Launch Template versions.
+357.
+Q: How to integrate CI/CD with EC2? A: Use CodePipeline/CodeDeploy to push code to EC2 instances.
+358.
+Q: Scenario: App config differs in prod vs dev. Solution? A: Use parameter store or Secrets Manager for environment-specific configs.
+359.
+Q: How to run commands on EC2 without SSH? A: Use SSM Session Manager.
+360.
+Q: Scenario: EC2 behind firewall, no internet. Remote commands needed. Solution? A: SSM with VPC endpoints for SSM service.
+361–400: DevOps & Automation / Real-world Outages
+361.
+Q: Scenario: Hundreds of EC2s need same config. Solution? A: Use Terraform or CloudFormation templates.
+362.
+Q: Scenario: App updates to multiple instances. Solution? A: Use SSM Run Command or CodeDeploy.
+363.
+Q: Scenario: Instance in private subnet needs remote commands. How? A: Use SSM Session Manager with VPC endpoints.
+364.
+Q: Scenario: CI/CD pipeline for EC2. How? A: CodePipeline + CodeDeploy to deploy apps to instances.
+365.
+Q: Scenario: User Data script fails on launch. Fix? A: Verify syntax, logs at /var/log/cloud-init.log.
+366.
+Q: Scenario: Terraform destroys instance by mistake. Mitigation? A: Use lifecycle { prevent_destroy = true } in config.
+367.
+Q: Scenario: EC2 configuration drift. Solution? A: Use Systems Manager State Manager for compliance.
+368.
+Q: Scenario: Auto-remediation for unhealthy EC2. How? A: CloudWatch Alarm → Lambda → SSM → restart instance.
+369.
+Q: Scenario: Instance compromised. Immediate action? A: Isolate, snapshot, investigate, rotate keys, redeploy.
+370.
+Q: Scenario: Spot instance interruption. Mitigation? A: Use Spot Fleet diversification, checkpoint workload.
+371.
+Q: Scenario: Application crashed silently. How to detect? A: CloudWatch Logs, X-Ray tracing, custom alarms.
+372.
+Q: Scenario: EC2 batch job causes CPU spike. How to handle? A: Scale via ASG, schedule batch jobs, monitor CloudWatch metrics.
+373.
+Q: Scenario: EC2 fails system status check. Fix? A: Stop/start instance; AWS may replace underlying hardware.
+374.
+Q: Scenario: Network latency spikes between EC2s. Fix? A: Check placement groups, instance type network throughput, cross-AZ traffic.
+375.
+Q: Scenario: EC2 cannot mount EFS. Fix? A: Security group, subnet routing, mount target, NFS client config.
+376.
+Q: Scenario: Disk full on EC2. Mitigation? A: CloudWatch disk usage metrics, clean logs, extend EBS volume.
+377.
+Q: Scenario: Auto-scaling fails during peak. Fix? A: Check CloudWatch metrics, scaling policy, cooldown, MaxSize.
+378.
+Q: Scenario: Multiple EC2s need central logging. How? A: CloudWatch Logs centralized group, log agent installed.
+379.
+Q: Scenario: Application memory leak. How to monitor? A: CloudWatch custom metrics, agent installed, alarms.
+380.
+Q: Scenario: Cross-region latency affects app. Solution? A: Use Route53 latency-based routing, deploy app closer to users.
+381.
+Q: Scenario: EC2 patching needs automation. How? A: Systems Manager Patch Manager, maintenance window.
+382.
+Q: Scenario: App requires zero-downtime deployment. Solution? A: Blue/Green deployment using ASG and ELB.
+383.
+Q: Scenario: Multi-AZ EC2 fails partially. Recovery? A: ASG launches new instance in healthy AZ.
+384.
+Q: Scenario: Instance metadata attack prevention. A: IMDSv2 enforced, IAM role restriction, patch OS.
+385.
+Q: Scenario: EC2 requires audit trail. Solution? A: CloudTrail logs, Config rules, CloudWatch Events.
+386.
+Q: Scenario: EC2 cost spike detected. Response? A: CloudWatch + Budget alarms, analyze via Cost Explorer.
+387.
+Q: Scenario: Spot instance interrupted during critical processing. Solution? A: Maintain base On-demand instance + checkpoint workload.
+388.
+Q: Scenario: Auto Scaling replaces healthy instance repeatedly. Fix? A: Verify termination policies, health check configuration.
+389.
+Q: Scenario: EC2 instance stuck pending. Solution? A: AZ capacity issue → try different AZ or instance type.
+390.
+Q: Scenario: EC2 cannot reach database. Fix? A: Check SG, route tables, VPC peering, DNS resolution.
+391.
+Q: Scenario: Lifecycle hook for ASG scale-in. Use? A: Pause termination to drain connections or backup data.
+392.
+Q: Scenario: EC2 network packets dropped. How to investigate? A: CloudWatch metrics, ENI stats, instance type limits.
+393.
+Q: Scenario: ELB removes instances too aggressively. Fix? A: Adjust health check intervals and thresholds.
+394.
+Q: Scenario: EC2 requires sub-second failover. Solution? A: Pre-warmed standby, cluster placement group, ASG readiness.
+395.
+Q: Scenario: High-availability testing for EC2. Steps? A: Simulate instance/AZ failure, validate failover, monitor SLA metrics.
+396.
+Q: Scenario: EC2 storage performance throttled. Fix? A: Upgrade volume type (gp3/io2), increase IOPS, enable EBS optimization.
+397.
+Q: Scenario: Cross-region DR test for EC2. How? A: Replicate AMI/snapshots, launch test instances, validate failover.
+398.
+Q: Scenario: EC2 audit compliance. How? A: Enable CloudTrail, Config, Security Hub, patching compliance.
+399.
+Q: Scenario: EC2 application logs need centralized search. Solution? A: CloudWatch Logs → Export to S3 → Athena/Elasticsearch for query.
+400.
+Q: Scenario: EC2 scaling policies not behaving as expected. How? A: Verify CloudWatch metrics, policy thresholds, evaluation periods, cooldowns.
+401–450: Real-World Outages & Troubleshooting
+401.
+Q: Scenario: EC2 not reachable after patch. Check? A: Verify network, security groups, firewall, patch logs.
+402.
+Q: EC2 CPU spike during batch jobs. Fix? A: Use larger instance type, optimize batch jobs, schedule off-peak.
+403.
+Q: EC2 disk full. Scenario? A: Monitor with CloudWatch, extend volume, remove logs.
+404.
+Q: Scenario: App fails on instance restart. Cause? A: Missing User Data script persistence, EBS volume detached.
+405.
+Q: Network latency high. Scenario? A: Check placement group, instance type network throughput, cross-AZ traffic.
+406.
+Q: EC2 fails health checks. Solution? A: Review app logs, security group, ELB config.
+407.
+Q: Spot instance interrupted mid-processing. Solution? A: Checkpointing, use Spot Fleet diversification.
+408.
+Q: Scenario: EC2 loses internet in private subnet. Fix? A: Check NAT gateway, route tables, NACLs.
+409.
+Q: System status check failed on EC2. Solution? A: Stop/start instance, contact AWS if persists.
+410.
+Q: Instance terminated accidentally. How to recover? A: Restore from latest AMI or snapshot.
+410–450: Spot/Reserved Instances, SRE Practices, Compliance
+410.
+Q: Scenario: Spot instance terminated mid-job. How to prevent data loss? A: Use checkpointing, maintain base On-demand instance, or Spot Fleet with diversified instance types.
+411.
+Q: Scenario: Reserved Instance underutilized. How to optimize? A: Modify RI type, convert to Convertible RI, or sell unused RI in AWS Marketplace.
+412.
+Q: Scenario: Multi-region deployment for disaster recovery. Cost-effective approach? A: Keep minimal standby instances in secondary region, replicate only critical data.
+413.
+Q: Scenario: Spot Fleet failing to launch instances. Check? A: Validate instance types, AZ capacity, allocation strategy, IAM permissions.
+414.
+Q: Scenario: EC2 cost optimization with mixed workloads. How? A: On-demand for base load, Spot for burst; monitor metrics via CloudWatch.
+415.
+Q: Scenario: Auto-scaling uses Spot, SLA critical. Mitigation? A: Maintain minimum On-demand instances, checkpoint Spot workloads.
+416.
+Q: Scenario: EC2 compliance requirements for PCI-DSS. How? A: Encrypt volumes, use IAM roles, audit via Config, enable CloudTrail.
+417.
+Q: Scenario: EC2 running sensitive workloads. Security best practice? A: Patch OS, restrict IAM roles, enable Security Groups, VPC isolation.
+418.
+Q: Scenario: EC2 cross-account access required. Secure method? A: Use IAM roles with trust policy; avoid sharing keys.
+419.
+Q: Scenario: EC2 fails patch compliance check. How? A: Use Systems Manager Patch Manager, remediate automatically.
+420.
+Q: Scenario: Spot instance price fluctuation affects workloads. Solution? A: Set maximum price, diversify AZs, monitor via CloudWatch.
+421.
+Q: Scenario: SRE wants error budget alert on EC2 application. How? A: Monitor CloudWatch custom metrics → set alarm → notify via SNS.
+422.
+Q: Scenario: EC2 latency spikes for user traffic. How to debug? A: Check placement group, network throughput, instance type, CloudWatch metrics.
+423.
+Q: Scenario: Multi-AZ deployment fails partially. SRE mitigation? A: ASG launches replacement in healthy AZ, monitor SLA.
+424.
+Q: Scenario: EC2 application needs zero-downtime deployment. Approach? A: Blue/Green deployment using ASG + ELB; gradually shift traffic.
+425.
+Q: Scenario: Compliance requires immutable EC2 logs. Solution? A: Forward logs to S3 with versioning + encryption, restrict write permissions.
+426.
+Q: Scenario: EC2 instance reboot causes downtime. Solution? A: Enable Auto-Recovery, use Multi-AZ deployment, pre-warm standby.
+427.
+Q: Scenario: Spot instance terminated, SLA critical. Mitigation? A: Use checkpointing, Spot Fleet diversification, maintain minimum On-demand.
+428.
+Q: Scenario: EC2 requires audit trail of user access. Solution? A: Enable CloudTrail logging, enforce IAM policies, review regularly.
+429.
+Q: Scenario: Reserved instance not applied automatically. Why? A: Check instance type, region, tenancy, platform match for RI coverage.
+430.
+Q: Scenario: Spot instance price increases beyond budget. How? A: Auto-terminate or switch to alternative instance type/AZ.
+431.
+Q: Scenario: EC2 instances drift from configuration baseline. Solution? A: Use Systems Manager State Manager for configuration enforcement.
+432.
+Q: Scenario: EC2 network performance drops. Fix? A: Enable enhanced networking, check ENI, upgrade instance type.
+433.
+Q: Scenario: Multi-AZ failover takes too long. How to improve? A: Pre-warm standby, health checks optimized, reduce ASG cooldowns.
+434.
+Q: Scenario: EC2 encryption required for compliance. How? A: Enable EBS encryption, use KMS keys, encrypt snapshots and AMIs.
+435.
+Q: Scenario: EC2 audit report needed weekly. How? A: Use AWS Config rules, schedule reports to S3.
+436.
+Q: Scenario: Spot instance interruptions causing job failures. How? A: Checkpoint, maintain On-demand base, diversify Spot instance types.
+437.
+Q: Scenario: Reserved Instance cost savings not realized. Why? A: Wrong instance type, region, OS, tenancy mismatch with RI.
+438.
+Q: Scenario: EC2 patching automated for compliance. How? A: Systems Manager Patch Manager + maintenance windows.
+439.
+Q: Scenario: EC2 instance logs tampered. Mitigation? A: Forward to immutable storage (S3 with versioning + encryption), monitor via CloudTrail.
+440.
+Q: Scenario: Spot Fleet not maintaining capacity. Fix? A: Check allocation strategy, diversify AZs and instance types.
+441.
+Q: Scenario: Multi-region EC2 deployment for DR. Cost-efficient setup? A: Keep minimal standby instances, replicate essential data only.
+442.
+Q: Scenario: EC2 health check fails repeatedly. How? A: Check OS, application, SG, NACL, CloudWatch metrics.
+443.
+Q: Scenario: Auto Scaling replacing healthy instances. Cause? A: Misconfigured health checks or termination policies.
+444.
+Q: Scenario: EC2 compliance for HIPAA workloads. Actions? A: Encrypt data at rest/in transit, IAM restriction, logging, audit trail.
+445.
+Q: Scenario: Spot instance suddenly terminated mid-critical workload. Recovery? A: Checkpoint state, maintain base On-demand instance, automated replacement.
+446.
+Q: Scenario: EC2 application logs centralized for compliance. How? A: CloudWatch Logs → S3 → Athena or Elasticsearch for query/audit.
+447.
+Q: Scenario: Reserved Instance modification needed. How? A: Use AWS console/CLI → modify instance family, AZ, OS, tenancy if Convertible RI.
+448.
+Q: Scenario: EC2 instances need automated scaling + cost optimization. Solution? A: ASG + Spot Fleet diversification + CloudWatch metric-based policies.
+449.
+Q: Scenario: EC2 SLA not met during AZ failure. Mitigation? A: Multi-AZ deployment, pre-warmed standby, ASG scaling policies.
+450.
+Q: Scenario: EC2 spot interruptions impacting SRE error budget. How? A: Use checkpointing, diversify Spot types, maintain On-demand base, alert via CloudWatch + SNS.
+451–500: SRE Practices, Compliance & Advanced Topics
+451.
+Q: How to implement EC2 observability? A: CloudWatch metrics, CloudTrail, X-Ray, custom metrics.
+452.
+Q: Scenario: Auto-remediation for unhealthy EC2. How? A: Lambda triggered via CloudWatch Alarm → restart instance.
+453.
+Q: What is SRE approach for EC2 uptime? A: Define SLO/SLI, use redundancy, monitoring, automated recovery.
+454.
+Q: How to enforce compliance on EC2? A: IAM policies, Config rules, Security Hub, patch compliance.
+455.
+Q: Scenario: EC2 needs PCI DSS compliance. How? A: Harden OS, encryption at rest & in transit, audit logging, VPC isolation.
+456.
+Q: How to handle EC2 scale-down gracefully? A: Use lifecycle hooks in ASG to drain connections before termination.
+457.
+Q: Scenario: Multiple ASGs with different scaling metrics. How? A: Configure target tracking or step policies per ASG.
+458.
+Q: EC2 cost optimization tips? A: Reserved/spot instances, rightsizing, delete unused volumes, schedule stop/start for dev instances.
+459.
+Q: Scenario: EC2 needs multi-region backup for compliance. How? A: Cross-region AMI copy, EBS snapshot replication.
+460.
+Q: EC2 patching best practices? A: Test in dev, automate via Systems Manager Patch Manager, schedule maintenance window.
+461.
+Q: EC2 security best practices? A: IAM roles, least privilege, encryption, VPC isolation, security group restrictions.
+462.
+Q: Scenario: Application cannot reach DB in different AZ. Solution? A: Check route tables, security group, VPC peering.
+463.
+Q: EC2 Spot + Reserved hybrid. Scenario? A: Reserved for base load, Spot for burst workloads.
+464.
+Q: Scenario: EC2 disk performance bottleneck. Fix? A: Use provisioned IOPS, higher instance type, EBS-optimized instances.
+465.
+Q: EC2 with high network throughput requirement. Solution? A: Enhanced networking enabled (ENA), placement group, higher network instance type.
+466.
+Q: Scenario: EC2 instance compromised. Steps? A: Isolate, snapshot, investigate, rotate keys, redeploy.
+467.
+Q: What is EC2 instance recovery? A: Automatically recovers instance on underlying hardware failure without changing instance ID.
+468.
+Q: Scenario: Recovery fails. Next step? A: Stop/start instance, contact AWS Support if hardware issue persists.
+469.
+Q: EC2 monitoring for cost anomaly. How? A: CloudWatch + Budgets alerts + Cost Explorer.
+470.
+Q: Scenario: Auto Scaling not triggering. Check? A: CloudWatch metric, policy configuration, cooldown period.
+471.
+Q: EC2 lifecycle hooks? A: Pause ASG scale-in/out to perform custom actions (drain connections, backup).
+472.
+Q: Scenario: Need zero-downtime deployment. Solution? A: Blue/Green deployment with ELB and ASG.
+473.
+Q: EC2 multi-tenancy compliance issues? A: Use dedicated hosts if regulatory requirements demand physical isolation.
+474.
+Q: Scenario: EC2 instances need auditing for security changes. How? A: CloudTrail logs, Config rules, CloudWatch Events.
+475.
+Q: EC2 high availability checklist? A: Multi-AZ, ELB, ASG, health checks, snapshots, monitoring.
+476.
+Q: Scenario: Application requires sub-second failover. Solution? A: Cluster placement group, pre-warmed standby instances.
+477.
+Q: EC2 integration with S3 & EFS for shared storage. Scenario? A: Mount EFS across EC2; use S3 SDK for object storage.
+478.
+Q: Scenario: EBS snapshot restore slow. How? A: Use fast snapshot restore option.
+479.
+Q: How to secure instance metadata? A: IMDSv2 enforced, limit role privileges.
+480.
+Q: Scenario: EC2 cross-region DR test. Approach? A: Replicate AMI/snapshots, deploy test instances, failover validation.
+481.
+Q: How to prevent accidental termination? A: Enable termination protection.
+482.
+Q: Scenario: Instance terminated despite protection. Cause? A: Force terminate via API, instance was not protected at launch.
+483.
+Q: EC2 network troubleshooting steps? A: Check ENI, SG, NACL, route tables, VPC endpoints, DNS resolution.
+484.
+Q: Scenario: EC2 cannot resolve private domain. Fix? A: Check Route53 private hosted zone, VPC association, DHCP option sets.
+485.
+Q: EC2 monitoring for SLA compliance. Approach? A: CloudWatch SLI metrics, alarm on deviation, Auto Recovery.
+486.
+Q: Scenario: EC2 load balancer unhealthy threshold too sensitive. Solution? A: Adjust health check thresholds or intervals.
+487.
+Q: EC2 instance cannot mount EFS NFS. Fix? A: Security group, mount target, subnet route, NFS client configuration.
+488.
+Q: Scenario: High cost due to idle EC2. Solution? A: Stop unused instances, use spot for dev/test, schedule start/stop.
+489.
+Q: EC2 audit trail for compliance. Tools? A: CloudTrail, Config, Security Hub.
+490.
+Q: Scenario: EC2 RDS access denied after instance recreation. Solution? A: IAM role attachment, security group inbound, subnet route.
+491.
+Q: EC2 instance CPU credit exhaustion. Scenario? A: T2/T3 burstable instance; monitor with CloudWatch, consider larger or standard instance.
+492.
+Q: Scenario: Auto Scaling group not scaling to max. Fix? A: Check ASG MaxSize, CloudWatch metrics, scaling policies.
+493.
+Q: EC2 spot interruption notice. Response? A: Use two-minute notice for checkpointing or migrate workload.
+494.
+Q: EC2 instance stuck pending. Scenario? A: Insufficient capacity in AZ; try different AZ or instance type.
+495.
+Q: Scenario: EC2 fails after AMI update. Solution? A: Validate AMI, dependencies, test in staging, rollback if needed.
+496.
+Q: EC2 instance fails system status check repeatedly. Approach? A: Stop/start, check EBS, contact AWS for hardware replacement.
+497.
+Q: Scenario: EC2 memory leak in app. Detection? A: CloudWatch custom metrics, detailed monitoring, logs.
+498.
+Q: EC2 instance metadata poisoning attack. Prevention? A: IMDSv2 enforced, restrict IAM privileges, patch OS.
+499.
+Q: Scenario: EC2 fleet experiencing intermittent network failures across AZs. How to troubleshoot and mitigate? A: Check VPC/subnet routing, SG/NACL rules, placement groups, instance type network limits, monitor CloudWatch metrics, enable enhanced networking, and consider cross-AZ traffic optimization.
+500.
+Q: Scenario: Multi-AZ EC2 deployment costs exceeding budget while maintaining HA. Optimization strategy? A: Keep minimal standby in secondary AZ, use Spot instances for non-critical workloads, rightsizing, enable auto-start/stop for dev/test, monitor costs via AWS Budgets, enforce lifecycle policies for snapshots and AMIs.
