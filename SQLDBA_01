@@ -1,0 +1,140 @@
+SQL Server DBA Performance Tuning & Optimization – 100 Real-Time Q&A
+1. Performance Troubleshooting Basics
+1.Q: A SQL Server is running slow suddenly. What’s the first thing you check? A: Start with sp_whoisactive / Activity Monitor to see active sessions, blocking chains, high CPU queries, or waits. Then check PerfMon counters (CPU > 80%, Page Life Expectancy < 300, Disk Latency > 20ms).
+2.Q: How do you differentiate between SQL Server and OS-level performance issues? A: Compare SQL Server DMVs (sys.dm_exec_requests, sys.dm_os_wait_stats) with OS tools (Task Manager, PerfMon). If SQL CPU usage matches system CPU usage → SQL is consuming; otherwise, other processes are.
+3.Q: A system is running with high CPU usage. Which DMV helps identify problematic queries? A: Use sys.dm_exec_query_stats with CROSS APPLY sys.dm_exec_sql_text() to find top CPU-consuming queries.
+4.Q: What is Page Life Expectancy (PLE), and what does a low value mean? A: PLE is how long a data page stays in memory (Buffer Pool). A consistently low PLE (<300 seconds) indicates memory pressure.
+5.Q: How do you check if a query is CPU-bound or I/O-bound? A: Use SET STATISTICS IO, TIME ON. If CPU time is high, it’s CPU-bound; if Logical/Physical Reads are high, it’s I/O-bound.
+
+2. Indexes & Execution Plans
+6.Q: How do missing indexes affect performance? A: Queries perform table scans instead of index seeks → higher I/O. Use sys.dm_db_missing_index_details.
+7.Q: What is an execution plan, and why is it important? A: It shows how SQL optimizes a query (scan vs. seek, join type). Helps spot inefficiencies like key lookups, sorts, scans.
+8.Q: How do you eliminate “Key Lookup” issues? A: Add a covering index that includes the columns being selected.
+9.Q: How do you detect unused indexes? A: Use sys.dm_db_index_usage_stats to find indexes never used but consuming space during writes.
+10.Q: How do you reduce fragmentation in indexes? A: Rebuild indexes if fragmentation >30%, reorganize if 10–30%. Use sys.dm_db_index_physical_stats.
+
+3. Query Optimization
+11.Q: A query runs fine with small data but is slow with large data. Why? A: Poor indexing, parameter sniffing, statistics not updated, or inefficient query design.
+12.Q: What is parameter sniffing? A: SQL caches a plan based on first parameter values. Subsequent executions with different parameters may be inefficient.
+13.Q: How do you fix parameter sniffing issues? A: Options: OPTION (RECOMPILE), use local variables, or optimize indexes/statistics.
+14.Q: Difference between JOIN and EXISTS for filtering? A: EXISTS is faster for checking existence (stops on first match). JOIN may create duplicates.
+15.Q: Why is SELECT * bad for performance? A: Fetches unnecessary columns, prevents index covering, increases I/O & network load.
+
+4. Wait Statistics & Blocking
+16.Q: How do you identify blocking in SQL Server? A: Use sp_who2, sp_whoisactive, or DMV sys.dm_exec_requests with blocking session ID.
+17.Q: What are Wait Statistics in SQL Server? A: They show where SQL spends most of its time (CPU waits, I/O waits, locking waits).
+18.Q: Which wait types indicate disk bottlenecks? A: PAGEIOLATCH_*, WRITELOG.
+19.Q: Which wait types indicate CPU pressure? A: SOS_SCHEDULER_YIELD, CXPACKET (parallelism).
+20.Q: How do you resolve blocking? A: Kill blocking session (last resort), add proper indexes, reduce transaction scope, use NOLOCK carefully.
+
+5. Statistics & Cardinality
+21.Q: Why are statistics important for performance? A: SQL uses stats to estimate row counts → affects plan choice. Outdated stats lead to wrong plans.
+22.Q: How do you update statistics? A: UPDATE STATISTICS TableName or sp_updatestats.
+23.Q: When should AUTO_UPDATE_STATISTICS_ASYNC be used? A: For workloads needing fast response → prevents query blocking due to synchronous stats updates.
+24.Q: How do filtered statistics improve performance? A: Target skewed data distributions → better row estimation.
+25.Q: What is the difference between histograms and density vectors in statistics? A: Histograms store value distribution of a column, density vectors store uniqueness for joins.
+
+6. Memory & TempDB
+26.Q: How do you check memory usage by SQL Server? A: sys.dm_os_process_memory and sys.dm_os_memory_clerks.
+27.Q: What is a memory grant, and why does it cause performance issues? A: Queries request memory for sorting/joining. If underestimated → spills to TempDB.
+28.Q: How do you detect TempDB contention? A: High PAGELATCH waits. Use multiple TempDB data files (1 per core up to 8).
+29.Q: How do you reduce TempDB usage? A: Avoid temp tables for trivial queries, use indexed temp tables, optimize hash joins.
+30.Q: How do MAXDOP settings affect performance? A: Controls parallelism. Too high → excessive CPU usage; too low → slow performance.
+
+7. I/O & Disk Optimization
+31.Q: How do you detect slow I/O in SQL Server? A: Check sys.dm_io_virtual_file_stats for latency >20ms.
+32.Q: How do you improve log file performance? A: Place log files on separate disks, enable instant file initialization (for data files only), pre-size logs.
+33.Q: How do you detect “autogrowth” issues? A: Frequent growth events in Error Log. Fix: Pre-size DB and set proper growth.
+34.Q: Why are multiple data files used in large databases? A: To reduce allocation contention (especially in TempDB).
+35.Q: What RAID levels are best for SQL Server? A: RAID 10 (best balance of speed + redundancy), RAID 5 (cheap but slower for writes).
+
+8. Performance Monitoring Tools
+36.Q: Which DMVs are most useful for performance tuning? A: sys.dm_exec_requests, sys.dm_exec_query_stats, sys.dm_os_wait_stats, sys.dm_io_virtual_file_stats.
+37.Q: What is the difference between Profiler and Extended Events? A: Profiler = legacy, more overhead. Extended Events = lightweight, modern alternative.
+38.Q: How do you capture long-running queries? A: Extended Events, SQL Trace, Query Store.
+39.Q: What is Query Store? A: Feature to capture execution history & force good plans.
+40.Q: How do you baseline SQL Server performance? A: Regularly capture wait stats, PerfMon counters, IO latency, query performance.
+
+9. Optimization Scenarios
+41.Q: A stored procedure runs fast in SSMS but slow in application. Why? A: Different SET options, parameter sniffing, different execution plans.
+42.Q: Why do queries sometimes run slower after an index rebuild? A: Plan changes due to updated stats, fragmentation reset.
+43.Q: Why does “TOP 1 ORDER BY” sometimes cause performance issues? A: Requires sorting entire dataset. Fix: Use proper index on ORDER BY column.
+44.Q: How do you optimize bulk inserts? A: Use TABLOCK, disable indexes during load, batch inserts.
+45.Q: How do you tune queries with multiple joins? A: Ensure indexes on join keys, eliminate unnecessary columns, check join order in execution plan.
+
+10. Advanced Optimization
+46.Q: What is forced parameterization? A: SQL reuses plans by treating literals as parameters. Helps reduce plan cache bloat.
+47.Q: What are hints, and when should you use them? A: Hints force specific behaviors (e.g., NOLOCK, OPTIMIZE FOR). Use only when optimizer fails.
+48.Q: What is Adaptive Query Processing? A: SQL Server 2017+ feature to adjust plans dynamically based on runtime feedback.
+49.Q: What is Batch Mode processing? A: Columnstore optimization for analytical queries → processes rows in batches, faster than row mode.
+50.Q: What is In-Memory OLTP (Hekaton), and how does it improve performance? A: Memory-optimized tables eliminate locking/latching → faster transactions.
+
+11. Query Store & Plan Management
+51.Q: What is the Query Store, and why is it useful? A: It captures query history, execution plans, and performance stats. Useful for spotting plan regressions and forcing stable plans.
+52.Q: How do you force a good plan using Query Store? A: ALTER QUERY in Query Store → "Force Plan" option. Prevents SQL from switching to worse plans.
+53.Q: What happens if the forced plan becomes invalid? A: SQL automatically unforces it and reverts to normal optimization.
+54.Q: How do you identify regressed queries in Query Store? A: Use built-in reports → Top Resource Consuming Queries or filter by regressed queries.
+55.Q: How does Query Store differ from plan cache? A: Plan cache is volatile (cleared on restart); Query Store is persistent.
+
+12. Extended Events & Monitoring
+56.Q: What are Extended Events? A: Lightweight monitoring framework for capturing performance events (e.g., long queries, deadlocks).
+57.Q: How do you capture deadlocks with Extended Events? A: Create a session for xml_deadlock_report.
+58.Q: Why are Extended Events better than SQL Profiler? A: Less overhead, asynchronous, richer events.
+59.Q: How do you capture slow queries with Extended Events? A: Create a session for rpc_completed or sql_batch_completed with duration filter.
+60.Q: Can Extended Events be used in production? A: Yes, recommended over Profiler for real-time monitoring.
+
+13. Deadlocks & Concurrency
+61.Q: How do you detect deadlocks? A: SQL Error Log (1222), Extended Events, Profiler, or sys.dm_tran_locks.
+62.Q: How do you prevent deadlocks? A: Access objects in the same order, keep transactions short, use proper indexes.
+63.Q: What is the deadlock victim? A: SQL automatically chooses one transaction to rollback (least costly) when deadlock occurs.
+64.Q: How do you simulate a deadlock for testing? A: Run two transactions accessing the same resources in reverse order.
+65.Q: What is optimistic vs. pessimistic concurrency? A: Optimistic assumes low conflicts (uses row versions); pessimistic locks resources to avoid conflicts.
+
+14. Parallelism & MAXDOP
+66.Q: What is MAXDOP in SQL Server? A: Maximum Degree of Parallelism → controls CPU cores used for queries.
+67.Q: What causes CXPACKET waits? A: Inefficient parallel plans → imbalance in parallel threads.
+68.Q: How do you fix CXPACKET waits? A: Adjust MAXDOP, update statistics, rewrite queries.
+69.Q: How do you set MAXDOP at query level? A: OPTION (MAXDOP 1) in query hint.
+70.Q: What is the best practice for MAXDOP setting? A: Typically # of logical CPUs per NUMA node (up to 8).
+
+15. Indexing Advanced
+71.Q: What are filtered indexes? A: Index with a WHERE clause → reduces size, improves performance for skewed data.
+72.Q: When should you use columnstore indexes? A: For OLAP/analytical queries (large scans, aggregations).
+73.Q: What is the drawback of columnstore indexes? A: Slower OLTP operations (insert, update, delete).
+74.Q: What are included columns in indexes? A: Non-key columns stored at leaf level → reduces key lookups.
+75.Q: How do indexed views improve performance? A: Store pre-aggregated results physically → reduces computation.
+
+16. Always On & High Availability Performance
+76.Q: How do synchronous and asynchronous AGs affect performance? A: Synchronous → adds commit latency; Asynchronous → faster but risk of data loss.
+77.Q: What is the impact of readable secondaries? A: They add CPU/I/O load due to redo thread and tempdb usage.
+78.Q: How do you reduce AG failover time? A: Tune network, pre-size logs, optimize redo queue.
+79.Q: What is redo queue in AGs? A: Unapplied log records on secondary; large queues cause lag.
+80.Q: How do you monitor AG performance? A: DMV sys.dm_hadr_database_replica_states (redo/ send queue size).
+
+17. Replication & Performance
+81.Q: What replication type impacts performance most? A: Merge replication (conflict detection overhead).
+82.Q: How do you optimize transactional replication? A: Use indexed PKs, filter articles, tune log reader agent.
+83.Q: What slows down replication? A: Large transactions, high latency network, unindexed columns.
+84.Q: How do you monitor replication latency? A: sp_replmonitorsubscriptionpendingcmds.
+85.Q: How do you troubleshoot slow replication agent? A: Check agent profile, batch size, max concurrency.
+
+18. TempDB & Contention
+86.Q: What is PAGELATCH contention in TempDB? A: Multiple threads fighting for same page → delays.
+87.Q: How do you fix TempDB contention? A: Use multiple data files (equal size), trace flags 1117 & 1118 (pre-SQL 2016).
+88.Q: Why is TempDB critical for performance? A: Used for sorts, joins, versioning, temp tables.
+89.Q: What causes TempDB spills? A: Insufficient memory grant → sorts/hash joins spill to TempDB.
+90.Q: How do you monitor TempDB usage? A: DMV sys.dm_db_task_space_usage.
+
+19. Backup & Restore Performance
+91.Q: How do you optimize backup speed? A: Use striped backups, compression, and backup to disk instead of tape.
+92.Q: Does backup compression impact performance? A: Saves I/O, but adds CPU overhead.
+93.Q: How do you test restore speed? A: RESTORE VERIFYONLY for integrity, but actual restore for speed.
+94.Q: How do instant file initialization help restore? A: Skips zeroing data files → faster restores.
+95. Q: How do you monitor backup performance? A: DMV sys.dm_io_virtual_file_stats, MSDB backup history.
+
+20. Cloud & Miscellaneous
+96. Q: How does Azure SQL performance tuning differ from on-prem? A: Limited server access; focus on DTU/vCore monitoring, Query Store, and automatic tuning.
+97.Q: What is automatic tuning in SQL Azure? A: SQL auto-creates/drops indexes and forces plans.
+98.Q: How do you handle noisy neighbor problems in Cloud SQL? A: Scale up service tier, enable resource governance.
+99. Q: What are Resource Governor best practices? A: Use for multi-tenant workloads to limit CPU/IO.
+100. Q: How do you approach end-to-end performance tuning? A: Baseline → Identify bottleneck (CPU, IO, Memory, Network) → Tune queries/indexes → Monitor waits → Test fixes.
