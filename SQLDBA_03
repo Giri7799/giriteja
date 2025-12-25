@@ -1,0 +1,216 @@
+Top 50 Interview Q&A: Indexes & Execution Plans in SQL Server
+Indexes
+1. What are indexes in SQL Server and why are they important?
+•Indexes are database objects that improve the speed of data retrieval.
+•Without indexes, SQL Server scans entire tables (full table scan).
+•With indexes, SQL Server can quickly locate data pages using B-Trees.
+
+2. Difference between Clustered and Non-Clustered indexes?
+•Clustered Index: Sorts and stores data physically in the table (only one per table).
+•Non-Clustered Index: Separate structure with pointers to rows in the clustered index or heap.
+
+3. What is a Heap table?
+•A table without a clustered index.
+•Data is stored unsorted, retrieval is slower.
+•Often leads to forwarding pointers when updated.
+
+4. What are Included Columns in Non-Clustered Indexes?
+•Columns added to the index leaf-level for covering queries.
+•Improve performance by avoiding key lookups.
+
+5. What is a Covering Index?
+•An index that contains all the columns a query needs (either in key or included columns).
+•Prevents lookups, improves query speed.
+
+6. What is a Filtered Index?
+•An index built with a WHERE clause on a subset of rows.
+•Useful for queries filtering on specific values (e.g., active = 1).
+
+7. Difference between Unique Index and Primary Key Index?
+•Primary Key: Automatically creates a unique clustered index unless specified otherwise.
+•Unique Index: Ensures uniqueness but doesn’t enforce primary key constraints.
+
+8. What is Index Fragmentation?
+•Internal fragmentation (empty space in pages).
+•External fragmentation (logical order of pages mismatched with physical order).
+•Fix with ALTER INDEX REORGANIZE (low) or REBUILD (high).
+
+9. When do you choose REBUILD vs REORGANIZE?
+•Reorganize if fragmentation between 5%–30%.
+•Rebuild if fragmentation >30%.
+
+10. What is a Fill Factor?
+•Percentage of space left empty in index pages during rebuild.
+•Helps reduce page splits on future inserts.
+
+11. What are Indexed Views?
+•Materialized views that are persisted with clustered index.
+•Improve performance but come with overhead on DML.
+
+12. What is the impact of too many indexes?
+•Increases DML overhead (insert/update/delete slower).
+•More storage used.
+•Query optimizer takes longer to choose best index.
+
+13. How do you identify unused indexes?
+•Use sys.dm_db_index_usage_stats.
+•Look for indexes with low user_seeks/scans and high user_updates.
+
+14. What is a Key Lookup (Bookmark Lookup)?
+•When a non-clustered index doesn’t have all required columns, SQL Server fetches extra data from clustered index/heap.
+•Solution: Covering index or included columns.
+
+15. What are Columnstore Indexes?
+•Store data column-wise, highly compressed.
+•Best for analytics and large fact tables.
+•Improves aggregation and scanning performance.
+
+16. What is the difference between Clustered Columnstore and Non-Clustered Columnstore indexes?
+•Clustered Columnstore: Stores entire table in columnar format.
+•Non-Clustered Columnstore: Created on top of rowstore table, useful for hybrid OLTP/OLAP.
+
+17. Can we create multiple Clustered Indexes on a table?
+•No. Only one clustered index allowed because it defines physical data order.
+
+18. How do you detect Missing Indexes?
+•Use sys.dm_db_missing_index_details.
+•Execution Plan will also show Missing Index recommendations.
+
+19. What is an XML Index?
+•Primary XML Index stores parsed XML data.
+•Secondary XML Indexes (PATH, VALUE, PROPERTY) optimize XML queries.
+
+20. What is a Full-text Index?
+•Special index used for fast searches on large text columns.
+•Supports advanced search features like stemming and synonyms.
+
+Execution Plans
+21. What is an Execution Plan?
+•A roadmap SQL Server creates to execute a query.
+•Shows operations like scans, seeks, joins, sorts, etc.
+
+22. Difference between Estimated and Actual Execution Plan?
+•Estimated Plan: Generated before execution (optimizer guess).
+•Actual Plan: Generated after execution (includes runtime statistics).
+
+23. How do you generate an Execution Plan?
+•In SSMS:
+oEstimated Plan: CTRL + L
+oActual Plan: CTRL + M
+
+24. What are common operators in Execution Plans?
+•Index Seek
+•Index Scan
+•Table Scan
+•Nested Loop Join
+•Merge Join
+•Hash Match
+
+25. Difference between Index Seek vs Index Scan?
+•Seek: Uses index to directly locate rows (efficient).
+•Scan: Reads all rows (less efficient).
+
+26. What is a Table Scan?
+•Reads every row of the table.
+•Happens if no index exists or index is not selective.
+
+27. What is the difference between Nested Loop, Merge Join, and Hash Match?
+•Nested Loop: Best for small inputs, index lookups.
+•Merge Join: Requires sorted inputs, efficient for large sorted sets.
+•Hash Match: Used for large unsorted sets.
+
+28. What is Cardinality Estimation in Execution Plan?
+•Process of predicting the number of rows returned at each step.
+•Wrong estimation can cause poor plan choice.
+
+29. What are Parameter Sniffing issues in Execution Plans?
+•SQL Server caches a plan based on the first parameter value.
+•Different parameter values may cause suboptimal plans.
+•Fix: Use OPTION (RECOMPILE), Optimize for hint, or plan guides.
+
+30. What is the difference between Actual Rows vs Estimated Rows in Execution Plan?
+•Large discrepancies mean cardinality estimation problems, missing stats, or parameter sniffing.
+
+31. How do you detect costly operators in Execution Plans?
+•Look for highest percentage cost in plan.
+•Use Query Store or DMVs for history.
+
+32. What is a Parallel Execution Plan?
+•Plan uses multiple threads (operators show “Parallelism”).
+•Controlled by max degree of parallelism (MAXDOP).
+
+33. What are Execution Plan Warnings?
+•Missing Index
+•Spill to TempDB (Sort/Hash warnings)
+•Implicit conversions
+
+34. What is a “Spill to TempDB” warning?
+•Happens when SQL Server runs out of memory for Hash/Sort operations.
+•Indicates need for more memory grant or better indexing.
+
+35. How do Statistics affect Execution Plans?
+•Optimizer uses statistics to estimate row counts.
+•Outdated stats lead to poor plans.
+
+36. How do you update statistics?
+•UPDATE STATISTICS or sp_updatestats.
+•Use AUTO UPDATE STATISTICS ON for automatic maintenance.
+
+37. What is the difference between SARGable and Non-SARGable queries?
+•SARGable queries allow index usage (e.g., WHERE column = 5).
+•Non-SARGable (e.g., WHERE YEAR(date) = 2023) forces scans.
+
+38. How do Hints affect Execution Plans?
+•FORCESEEK, LOOP JOIN, MAXDOP, OPTIMIZE FOR… can override optimizer choices.
+•Useful but should be used cautiously.
+
+39. What is a Plan Cache?
+•Stores execution plans for reuse.
+•Reduces compilation overhead.
+
+40. What is Plan Reuse vs Plan Recompilation?
+•Reuse: SQL Server uses cached plan for similar queries.
+•Recompile: SQL Server generates new plan (can be forced with OPTION(RECOMPILE)).
+
+41. How do you identify queries with poor plans?
+•Query Store (from SQL Server 2016).
+•DMVs like sys.dm_exec_query_stats.
+
+42. What is Forced Parameterization?
+•SQL Server replaces literal values with parameters to encourage plan reuse.
+
+43. What is Adaptive Query Processing (SQL Server 2017+)?
+•Features like Adaptive Joins, Interleaved Execution, Memory Grant Feedback.
+•Helps optimize execution plan at runtime.
+
+44. What is the difference between Execution Plan Cache Bloat and Plan Pollution?
+•Cache Bloat: Too many single-use plans consume memory.
+•Pollution: Poorly parameterized queries flood cache with variations.
+
+45. What are Trivial Plans vs Full Optimization Plans?
+•Trivial Plan: Simple queries (SELECT * FROM small table).
+•Full Optimization: Complex queries with joins, filters, aggregates.
+
+46. What is a Plan Regression?
+•When SQL Server chooses a worse plan after schema/statistics changes.
+•Fix with Query Store Plan Forcing.
+
+47. What are the differences between Estimated Cost Percentages in Execution Plan?
+•They’re optimizer estimates, not exact runtime CPU/IO usage.
+•Use for relative comparison only.
+
+48. How do you share Execution Plans?
+•Save as .sqlplan file in SSMS.
+•Export XML from DMVs (sys.dm_exec_query_plan).
+
+49. What is a “Tipping Point” in Execution Plan?
+•When optimizer switches from using index seeks to table/index scans.
+•Usually happens when query returns large portion of rows.
+
+50. How do you troubleshoot slow queries using Execution Plans?
+•Steps:
+1.Capture Actual Execution Plan.
+2.Check for scans vs seeks.
+3.Look for key lookups, missing indexes, warnings.
+4.Compare Estimated vs Actual rows.
+5.Fix statistics/indexing/parameterization issues.
