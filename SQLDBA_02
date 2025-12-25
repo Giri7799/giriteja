@@ -1,0 +1,78 @@
+SQL Server DBA – Top 50 Performance Troubleshooting & Resolution FAQ (With Detailed Answers)
+1. General Troubleshooting
+1.Q: SQL Server suddenly becomes slow—what’s the first step? A: Check system health (CPU, memory, I/O) using Task Manager & PerfMon. Then in SQL, run sp_whoisactive or sys.dm_exec_requests to find blocking, long queries, or high waits. Always differentiate SQL issues vs. OS/hardware issues first.
+2.Q: How do you identify if slowness is due to SQL or external factors (like network)? A: Compare SQL DMV performance (CPU waits, I/O stalls) vs. OS counters. If SQL metrics are clean but app still slow, investigate network latency, firewall, or app tier.
+3.Q: A query is slow in production but fast in test. What’s your troubleshooting path? A: Compare execution plans, statistics freshness, index differences, server resources, and parameter sniffing. Often test DB is smaller, so scans appear “fast” there.
+4.Q: How do you troubleshoot sudden CPU spikes? A: Run DMV:
+SELECT TOP 10 total_worker_time/execution_count AS avg_cpu, text
+FROM sys.dm_exec_query_stats CROSS APPLY sys.dm_exec_sql_text(sql_handle)
+ORDER BY avg_cpu DESC;
+This shows the top CPU consumers.
+5.Q: What’s your approach if users complain of "SQL Server is hanging"? A: Check:
+oBlocking sessions (sp_whoisactive)
+oDeadlocks (system_health XE session)
+oResource waits (sys.dm_os_wait_stats)
+oError log for hardware/IO errors
+
+2. Blocking & Deadlocks
+6.Q: How do you detect blocking? A: sp_whoisactive → look for blocked by column. DMV sys.dm_exec_requests also shows blocking_session_id.
+7.Q: What’s the difference between blocking and deadlock? A: Blocking = one query waits for another. Deadlock = two queries cyclically wait → SQL kills one as victim.
+8.Q: How do you capture deadlocks? A: Use Extended Events (xml_deadlock_report) or trace flag 1222 to log into SQL Error Log.
+9.Q: How do you resolve blocking issues permanently? A: Tune queries causing long locks, create proper indexes, reduce transaction scope, consider optimistic isolation (RCSI).
+10.Q: How do you minimize deadlocks? A: Access resources in same order, commit transactions quickly, add covering indexes.
+
+3. Wait Statistics
+11.Q: What are Wait Stats, and why important? A: They show where SQL spends time waiting (CPU, I/O, locks). Key for root cause troubleshooting.
+12.Q: Which wait types indicate I/O problems? A: PAGEIOLATCH_*, WRITELOG. They mean slow disk reads/writes.
+13.Q: Which waits indicate CPU bottleneck? A: SOS_SCHEDULER_YIELD, high CXPACKET (parallelism).
+14.Q: How do you clear wait stats for troubleshooting? A: DBCC SQLPERF('sys.dm_os_wait_stats', CLEAR)—then monitor fresh waits.
+15.Q: What’s the difference between LATCH and LOCK waits? A: LATCH = internal SQL memory/page structures; LOCK = user transactions/resources.
+
+4. Query Performance Issues
+16.Q: A query runs fast in SSMS but slow in app—why? A: Different SET options, parameter sniffing, network round-trips, or different execution context.
+17.Q: What is parameter sniffing? A: SQL caches plan based on first parameter. Future executions with skewed data may suffer.
+18.Q: How do you fix parameter sniffing? A: Use OPTIMIZE FOR, RECOMPILE, or rewrite proc with local variables.
+19.Q: Why avoid SELECT *? A: Causes table scans, prevents index covering, increases I/O & network traffic.
+20.Q: A stored procedure runs slow after deployment. What’s the checklist? A: Recompile, check execution plan, verify stats, compare indexes between environments.
+
+5. Index & Statistics
+21.Q: How do you detect missing indexes? A: DMV sys.dm_db_missing_index_details. Also check execution plans for “Missing Index” warnings.
+22.Q: How do you find unused indexes? A: DMV sys.dm_db_index_usage_stats. Drop those with no reads but heavy writes.
+23.Q: What’s fragmentation, and how do you fix it? A: Logical ordering mismatch → slower scans. Fix by ALTER INDEX REORGANIZE/REBUILD.
+24.Q: How often update statistics? A: Auto-update ON by default. But for volatile tables, schedule UPDATE STATISTICS.
+25.Q: What’s a covering index? A: Index that includes all queried columns → avoids key lookups.
+
+6. TempDB & Memory
+26.Q: Why is TempDB a common performance bottleneck? A: Used for temp tables, sorts, version store, row versioning. Heavy contention = system slowdown.
+27.Q: How do you fix TempDB contention? A: Add multiple equally sized data files (1 per core up to 8), enable trace flag 1118 (SQL <2016).
+28.Q: How to detect memory pressure? A: Low Page Life Expectancy (PLE < 300), high memory grants pending, frequent IO.
+29.Q: What is a memory grant? A: Memory requested for sorts/joins. If underestimated, query spills to TempDB.
+30.Q: How do you identify memory-hungry queries? A: DMV: sys.dm_exec_query_memory_grants.
+
+7. I/O & Disk Troubleshooting
+31.Q: How to check disk latency from SQL? A: DMV sys.dm_io_virtual_file_stats. Avg Read/Write Latency >20ms = bad.
+32.Q: What causes WRITELOG waits? A: Slow log disk, small log files growing frequently.
+33.Q: How do you optimize transaction log writes? A: Pre-size logs, put logs on dedicated fast disk, use multiple VLFs.
+34.Q: What’s Instant File Initialization? A: Allows data files to skip zeroing → faster growth/restores (not for log files).
+35.Q: How to detect auto-growth performance issues? A: Frequent growth events in SQL Error Log. Fix: Pre-size and set proper growth increments.
+
+8. Parallelism & CPU
+36.Q: What is MAXDOP? A: Maximum Degree of Parallelism. Controls # of CPUs per query.
+37.Q: What causes CXPACKET waits? A: Imbalanced parallel plans or wrong MAXDOP.
+38.Q: How do you tune parallelism? A: Set MAXDOP = number of cores per NUMA node (≤8), use OPTION (MAXDOP 1) for OLTP queries.
+39.Q: Why can disabling parallelism hurt? A: Analytical/large queries benefit from parallel execution.
+40.Q: How do you detect high CPU queries? A: DMV sys.dm_exec_query_stats ORDER BY total_worker_time.
+
+9. Monitoring & Tools
+41.Q: What’s better: Profiler or Extended Events? A: Extended Events → lightweight, production-safe, richer event capture.
+42.Q: How do you baseline SQL Server performance? A: Capture waits, PerfMon counters, IO latencies, query performance at steady state.
+43.Q: How do you capture long-running queries? A: Use Extended Events or Query Store reports.
+44.Q: What’s the benefit of Query Store? A: Captures execution history & plan regressions; allows forcing stable plans.
+45.Q: How do you monitor real-time active queries? A: DMV sys.dm_exec_requests or sp_whoisactive.
+
+10. Real-Time Scenarios
+46.Q: SQL is slow every morning at 9 AM—how do you debug? A: Look for scheduled jobs, index maintenance, backups, or batch workloads at that time.
+47.Q: A nightly ETL job runs slower over time—what’s your approach? A: Check for growing table size, fragmentation, outdated stats, increased logging.
+48.Q: A query is spilling to TempDB—how do you fix it? A: Add memory (if feasible), optimize joins, create better indexes, increase worktable efficiency.
+49.Q: How do you troubleshoot performance issues in AlwaysOn AG? A: Check redo/send queue, network latency, synchronous vs. async commit.
+50.Q: How do you approach performance troubleshooting end-to-end? A: Stepwise → Baseline → Identify bottleneck (CPU/IO/Memory/Locks) → Drill into queries/indexes → Apply fixes → Monitor impact.
