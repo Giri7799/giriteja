@@ -1,0 +1,216 @@
+1. CPU / Scheduler Related
+•Wait Type: SOS_SCHEDULER_YIELD → Root Cause: High CPU usage, poor query plans, excessive parallelism. → Action:
+oIdentify top CPU-consuming queries (sys.dm_exec_query_stats).
+oReview indexes and missing statistics.
+oConsider adjusting MAXDOP and Cost Threshold for Parallelism.
+
+2. Locking / Blocking
+•Wait Type: LCK_M_X, LCK_M_S, LCK_M_U → Root Cause: Long-running transactions holding locks, blocking chains. → Action:
+o Use sp_whoisactive or Activity Monitor to find blockers.
+o Break blocking chain (commit/rollback).
+o Optimize queries causing escalation.
+o Consider snapshot isolation / RCSI.
+
+3. I/O Related
+•Wait Type: PAGEIOLATCH_SH, PAGEIOLATCH_EX → Root Cause: Slow storage subsystem, heavy read/write workload, missing indexes. → Action:
+o Check disk latency via sys.dm_io_virtual_file_stats.
+o Add indexes to reduce table scans.
+o Move TempDB / data files to faster storage.
+o Consider buffer pool extension/memory increase.
+
+4. Memory Related
+•Wait Type: RESOURCE_SEMAPHORE → Root Cause: Query memory grants too high, insufficient memory, bad estimates. → Action:
+o Identify queries waiting on memory grants (sys.dm_exec_query_memory_grants).
+o Tune queries/indexes for better estimates.
+o Reduce max server memory if OS is starving.
+o Upgrade RAM if persistent.
+
+5. Network / External Calls
+•Wait Type: ASYNC_NETWORK_IO → Root Cause: Client app slow to consume results (not SQL itself). → Action:
+o Check app fetching logic (e.g., row-by-row instead of set-based).
+o Optimize result set size (return fewer rows).
+o Use batching instead of single fetch loops.
+
+6. Parallelism
+•Wait Type: CXPACKET (pre-SQL 2016), CXCONSUMER (post-SQL 2016) → Root Cause: Queries running in parallel with imbalance, skewed workloads. → Action:
+o Review query plans for parallel operators.
+o Tune queries to avoid unnecessary parallelism.
+o Adjust MAXDOP and Cost Threshold for Parallelism.
+o Ensure stats are updated for balanced distribution.
+
+7. TempDB Bottlenecks
+•Wait Type: PAGELATCH_UP, PAGELATCH_EX (on TempDB) → Root Cause: Allocation contention in TempDB (system tables, temp objects). → Action:
+o Configure multiple TempDB data files (1 per 2–4 cores).
+o Enable trace flag 1118 (pre-2016, default in 2016+).
+o Monitor TempDB usage.
+
+8. External Resource
+• Wait Type: OLEDB, PREEMPTIVE_XXX waits → Root Cause: Linked servers, external backups, or OS-level operations. → Action:
+o Optimize linked server queries.
+oCheck external calls (backups, file I/O).
+oReduce reliance on external dependencies.
+
+High-Level Flow (Interview-Ready)
+
+[Check sys.dm_os_wait_stats]
+[Identify Top Wait Type] → [Map to Category]
+[Root Cause Analysis] → [Corrective Action]
+
+•CPU waits → Tune queries, indexes, parallelism.
+•Lock waits → Resolve blocking, tune transactions.
+•I/O waits → Improve storage, indexing.
+•Memory waits → Fix grants, upgrade RAM.
+•Network waits → Optimize app fetch logic.
+•TempDB waits → Add files, reduce contention.
+•External waits → Fix linked servers / OS bottlenecks.
+
+Top 50 – Statistics & Cardinality in SQL Server (DBA-Focused)
+1. What are statistics in SQL Server and why are they important?
+o Statistics describe data distribution (histogram + density) and help the optimizer estimate row counts.
+
+2. Where are statistics stored?
+o In system tables within each database (sys.stats, sys.stats_columns), and histograms are in DBCC SHOW_STATISTICS.
+
+3. What is a histogram in statistics?
+o Shows distribution of column values in up to 200 steps. Used for cardinality estimation.
+
+4. What is density in SQL Server statistics?
+o  Reciprocal of distinct values (1 / NDV). Helps with estimating selectivity for predicates.
+
+5. What is cardinality estimation?
+o The process SQL Server uses to predict the number of rows returned from a query.
+
+6. Why is cardinality estimation important?
+o Incorrect estimates → bad plans → performance issues (wrong joins, spills, scans instead of seeks).
+
+7. What is the Cardinality Estimator (CE) in SQL Server?
+o A model introduced in SQL 7.0, enhanced in SQL 2014 and later, that predicts row counts using statistics.
+
+8. Difference between Legacy CE (SQL 2012 and earlier) and New CE (SQL 2014+)?
+o New CE assumes less correlation between predicates, producing different estimates.
+
+9. How to check which CE version is being used?
+o Use DBCC TRACEON(9481) for legacy or DBCC TRACEON(2312) for new CE; query plan shows CE version.
+
+10. What happens when statistics are missing or stale?
+o Optimizer guesses row counts → bad plans → performance degradation.
+
+11. What triggers automatic statistics creation?
+o AUTO_CREATE_STATISTICS database option (ON by default).
+
+12. What triggers automatic statistics updates?
+o AUTO_UPDATE_STATISTICS (ON by default). Updates when ~20% + 500 rows changed.
+
+13. What is AUTO_UPDATE_STATISTICS_ASYNC?
+o Updates statistics in the background; query uses old stats until new stats are ready.
+
+14. How to manually update statistics?
+o UPDATE STATISTICS table(column) or sp_updatestats.
+
+15. What’s the difference between UPDATE STATISTICS and sp_updatestats?
+o UPDATE STATISTICS = specific, sp_updatestats = database-wide with minimal overhead.
+
+16. What are filtered statistics?
+o Stats on subset of rows (with a filter predicate). Helps with skewed data.
+
+17. What are incremental statistics?
+o For partitioned tables (Enterprise Edition). Updates only changed partitions.
+
+18. What is the impact of statistics on parameter sniffing?
+o Statistics influence compiled plans; skewed data can cause suboptimal reuse.
+
+19. How to detect out-of-date statistics?
+o DMV: sys.dm_db_stats_properties (last_updated).
+
+20. How to force SQL Server to ignore statistics?
+o Use query hints like OPTION (OPTIMIZE FOR UNKNOWN) or disable auto-stats.
+
+21. When should you disable auto-create or auto-update statistics?
+o Rarely; mainly for very large ETL systems with custom stat management.
+
+22. What is sampled statistics vs full scan?
+o WITH SAMPLE reads a subset of rows; WITH FULLSCAN scans all rows → more accurate but expensive.
+
+23. How do skewed data distributions affect cardinality estimation?
+o Estimates may be wrong if stats don’t reflect skew. Use filtered stats or histograms.
+
+24. What is the ascending key problem in statistics?
+o New values beyond histogram max are estimated poorly (seen in identity/date columns).
+
+25. How to solve the ascending key problem?
+o Use trace flags, filtered stats, or frequent manual updates.
+
+26. What’s the difference between statistics created by indexes vs auto-created statistics?
+o Index stats are maintained automatically with index updates; auto stats are per-column only.
+
+27. Can statistics exist without an index?
+o Yes, auto-created or manually created statistics.
+
+28. How to view statistics object details?
+o DBCC SHOW_STATISTICS (table, stat_name).
+
+29. What is histogram step compression?
+o If >200 unique values, SQL Server compresses values into max 200 steps.
+
+30. How does SQL Server estimate joins?
+o Uses histograms and density vectors; assumes independence by default.
+
+31. What are multi-column statistics?
+o Stats across multiple columns in one object; helps with correlated predicates.
+
+32. What are the limitations of multi-column statistics?
+o Only the leftmost column has a histogram; others rely on density.
+
+33. How do outdated statistics affect parallelism?
+o Wrong row count estimates can cause bad DOP (degree of parallelism) decisions.
+
+34. How do statistics affect TempDB usage?
+o Wrong estimates can cause spills to TempDB due to underestimated memory grants.
+
+35. How can statistics affect plan stability in Always On AGs?
+o Statistics are database-scoped; secondary replicas don’t auto-update stats.
+
+36. What happens to statistics after a database restore?
+o They restore as-is; may be outdated relative to the new workload.
+
+37. What is the difference between persisted sample statistics and temporary estimates?
+o Persisted stats are stored objects; estimates can come from heuristics if missing.
+
+38. How can statistics cause recompilation?
+o When stats are updated, plans depending on them may recompile.
+
+39. What is the statistics blob in the execution plan?
+The Plan XML contains a stats ID and a histogram reference.
+
+40. What is the impact of statistics on columnstore indexes?
+o Columnstore segment elimination relies on metadata; stats still guide joins/filters.
+
+41. How to detect queries suffering from poor cardinality estimation?
+o Compare EstimatedRows vs ActualRows in execution plans.
+
+42. What tools help monitor statistical health?
+o DMVs, Query Store, Extended Events, Plan Explorer.
+
+43. What happens if statistics are dropped?
+o Optimizer loses row distribution info → poor plan selection.
+
+44. How often should statistics be updated in a VLDB?
+It depends on the workload; often, schedules nightly or incremental updates.
+
+45. What is trace flag 2371?
+o Lowers auto-update threshold for stats on large tables (default since SQL 2016).
+
+46. What is “statistics object auto-naming”?
+o SQL Server creates names like _WA_Sys_<hex> for auto-created stats.
+
+47. How does cardinality estimation handle OR predicates?
+o CE may overestimate row counts by assuming independence.
+
+48. How does cardinality estimation handle AND predicates?
+o CE may underestimate by multiplying selectivities.
+
+49. What is the difference between scalar UDFs and inline table functions regarding statistics?
+o Scalar UDFs are opaque → no stats, inline TVFs expose query → better estimates.
+
+50. What are the best practices for managing statistics?
+o Keep auto-stats ON, use FULLSCAN for skewed data, monitor regularly, use filtered/incremental stats as needed.
