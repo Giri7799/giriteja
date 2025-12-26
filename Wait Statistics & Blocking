@@ -1,0 +1,211 @@
+Wait Statistics – Concepts & Basics
+1. What are wait statistics in SQL Server?
+•SQL Server tracks why worker threads are waiting (CPU, IO, locks, memory).
+•Helps identify performance bottlenecks.
+
+2. Where are wait statistics stored?
+•DMV: sys.dm_os_wait_stats.
+•Aggregated since last SQL Server restart or DBCC SQLPERF("sys.dm_os_wait_stats", CLEAR).
+
+3. Why are wait statistics important for a DBA?
+•Show the biggest bottlenecks in the system.
+•Guide tuning: CPU, IO, locking, memory pressure.
+
+4. What are benign waits?
+•Normal/harmless waits (e.g., WAITFOR, BROKER_RECEIVE_WAITFOR).
+•Should be ignored.
+
+5. What are signal waits vs resource waits?
+•Resource waits: Waiting on a resource (disk, lock, memory).
+•Signal waits: Waiting to get CPU after the resource is available.
+
+Common Wait Types
+6. What is CXPACKET / CXCONSUMER wait?
+•Related to parallel queries.
+•High values = skewed parallelism or wrong MAXDOP.
+
+7. What is the PAGEIOLATCH_XX wait?
+•Waiting on data pages to be read from disk.
+•Indicates slow storage or insufficient memory.
+
+8. What is PAGELATCH_XX wait?
+•Contention on in-memory pages (e.g., PFS, GAM, SGAM).
+•Common with heavy inserts in tempdb.
+
+9. What is WRITELOG wait?
+•Waiting on transaction log writes.
+•Indicates slow log disk or excessive autogrowth.
+
+10. What is ASYNC_NETWORK_IO wait?
+•Query waiting to send results to client.
+•Usually client/network bottleneck, not SQL issue.
+
+11. What is SOS_SCHEDULER_YIELD wait?
+•Thread yielded CPU voluntarily.
+•Indicates CPU pressure.
+
+12. What is the RESOURCE_SEMAPHORE wait?
+•Query waiting for memory grant.
+•Indicates memory pressure or bad estimates.
+
+13. What is LCK_M_XX wait?
+•Lock waits (shared, update, exclusive).
+•Indicates blocking.
+
+14. What is the HADR_SYNC_COMMIT wait?
+•AlwaysOn AG synchronous commit replica delay.
+•High wait = network/replica bottleneck.
+
+15. What is OLEDB wait?
+•Waiting on linked server queries.
+•Indicates remote server slowness.
+
+16. What is BACKUPIO / BACKUPBUFFER wait?
+•Backup or restore operation waiting on IO.
+•Could be a slow disk or an overloaded backup target.
+
+17. What is the RESOURCE_SEMAPHORE_QUERY_COMPILE wait?
+•Too many concurrent queries waiting for memory to compile.
+•Indicates high ad-hoc workload.
+
+18. What is THREADPOOL wait?
+•No worker threads available to run the query.
+•Indicates max worker thread exhaustion.
+
+19. What is LATCH_EX vs LATCH_SH?
+•LATCH_EX = Exclusive latch on memory structure.
+•LATCH_SH = Shared latch.
+•High contention = tempdb/system metadata issues.
+
+20. What is PREEMPTIVE_OS_AUTHENTICATION wait?
+•Waiting on external OS call (e.g., authentication, file system).
+•Indicates AD or Kerberos slowness.
+
+Blocking – Concepts & Basics
+21. What is blocking in SQL Server?
+•When one transaction holds a lock and prevents others from accessing the same resource.
+
+22. What’s the difference between blocking and deadlock?
+•Blocking: Queries wait until the resource is released.
+•Deadlock: Circular blocking — SQL Server kills one as the victim.
+
+23. How do you detect blocking in SQL Server?
+•DMVs:
+osys.dm_exec_requests
+osys.dm_exec_sessions
+•Tools: Activity Monitor, Extended Events.
+
+24. What is a head blocker?
+•The first session in blocking chain.
+•Resolving a head blocker clears all blocking.
+
+25. How do you identify blocking chains?
+•Use sp_who2 or sys.dm_exec_requests (blocking_session_id).
+•Extended Events for detailed analysis.
+
+26. What are common causes of blocking?
+•Long-running transactions.
+•Missing indexes → scans/locks.
+•Poor isolation level usage.
+•Open transactions left idle.
+
+27. What is lock escalation?
+•SQL Server converts many row/page locks into a table lock.
+•Can cause blocking for other queries.
+
+28. How do isolation levels affect blocking?
+•READ COMMITTED: Default, causes blocking.
+•SNAPSHOT/READ COMMITTED SNAPSHOT: Reduces blocking via versioning.
+
+29. How do you minimize blocking?
+•Keep transactions short.
+•Use proper index.
+•Choose an appropriate isolation level.
+
+30. How do you capture blocking events historically?
+•Extended Events (blocked_process_report).
+•SQL Trace/Profiler (deprecated).
+
+Troubleshooting Blocking
+
+31. What is a deadlock graph?
+•Visual representation of processes involved in a deadlock.
+•Captured in Extended Events or Profiler.
+
+32. How do you resolve blocking caused by missing indexes?
+•Check execution plan.
+•Add a covering or filtered index.
+
+33. How do you troubleshoot blocking in tempdb?
+•Look for PAGELATCH waits.
+•Fix with multiple tempdb data files.
+
+34. What’s the role of NOLOCK in reducing blocking?
+•Allows reading uncommitted data (dirty reads).
+•Reduces blocking but risks incorrect results.
+
+35. What is optimistic concurrency in blocking management?
+•Readers don’t block writers (versioning).
+•Achieved with SNAPSHOT isolation.
+
+36. How do you identify session details from SPID in blocking?
+•DMV: sys.dm_exec_sessions (login, program, host name).
+
+37. What SQL command can you use to kill a blocking session?
+•KILL <SPID>
+
+38. What are blocking alerts, and how to configure them?
+•Alerts when blocking exceeds threshold.
+•Implement with Agent Alerts or Extended Events.
+
+39. What is write blocking?
+•Insert/update/delete blocked by another transaction.
+•Often due to missing indexes or long transactions.
+
+40. What is read blocking?
+•Select blocked by update/delete transaction.
+•Fix with READ COMMITTED SNAPSHOT.
+
+Best Practices & Advanced Scenarios
+41. How do you clear wait statistics?
+•DBCC SQLPERF("sys.dm_os_wait_stats", CLEAR)
+
+42. How do you correlate waits with queries?
+•Use sys.dm_exec_requests joined with waits and query text.
+
+43. What’s the relationship between Wait Stats and PerfMon counters?
+•Waits = SQL internal waits.
+•PerfMon = OS-level performance counters.
+
+44. How do you differentiate between IO bottleneck vs blocking issue?
+•IO waits = PAGEIOLATCH / WRITELOG.
+•Blocking waits = LCK_M_XX.
+
+45. How do you handle THREADPOOL waits?
+•Reduce concurrent requests.
+•Tune queries.
+•Increase MAX WORKER THREADS (last resort).
+
+46. How do you reduce WRITELOG waits?
+•Place log file on fast disk (SSD).
+•Pre-size log file to avoid autogrowth.
+
+47. How do you troubleshoot CXPACKET waits?
+•Check query parallelism.
+•Adjust MAXDOP.
+•Increase cost threshold for parallelism.
+
+48. How do you use Query Store for blocking analysis?
+•Query Store captures execution statistics.
+•Combine with wait stats for bottleneck diagnosis.
+
+49. What is “headroom analysis” in wait stats?
+•Checking which waits dominate overall time.
+•Helps prioritize tuning efforts.
+
+50. What are the best practices for wait stats & blocking monitoring?
+•Baseline normal waits.
+•Automate periodic wait stats collection.
+•Enable Extended Events for blocking chains.
+•Proactively tune queries/indexes.
+•Use optimistic concurrency where applicable.
