@@ -1,0 +1,218 @@
+Top 50: Query Optimization in SQL Server (DBA/Admin Focus)
+General Concepts
+1. What is query optimization in SQL Server?
+•Process of improving query performance by minimizing CPU, IO, and memory usage.
+•Done via indexing, statistics, rewriting queries, and optimizer hints.
+
+2. What are common causes of slow queries?
+•Missing or outdated indexes.
+•Poor statistics.
+•Non-SARGable predicates.
+•Excessive joins or subqueries.
+•Blocking and deadlocks.
+
+3. How does the SQL Server Query Optimizer work?
+•Generates multiple execution plans and picks the lowest estimated cost.
+•Uses Cardinality Estimator to predict row counts.
+
+4. What are the main steps to troubleshoot a slow query?
+1. Capture execution plan.
+2. Check estimated vs actual rows.
+3. Identify expensive operators.
+4. Look for missing indexes / key lookups.
+5. Check waits (CXPACKET, LCK, etc.).
+
+5. What is the difference between Logical and Physical Query Processing?
+•Logical: Theoretical order of operations (FROM → WHERE → GROUP BY → SELECT → ORDER BY).
+•Physical: Actual execution order chosen by SQL Server.
+
+Indexes & Statistics
+6. How do indexes help query optimization?
+•Reduce I/O by allowing seeks instead of scans.
+•Enable covering queries to avoid lookups.
+
+7. How do you detect missing indexes?
+•DMVs: sys.dm_db_missing_index_details.
+•Execution Plan (Missing Index warning).
+
+8. What columns are included in indexes, and how do they help?
+•Non-key columns stored at the leaf level.
+•Help queries become covering indexes.
+
+9. What is index selectivity, and why is it important?
+•Ratio of unique values to total rows.
+•High selectivity → better performance.
+
+10. What role do statistics play in query optimization?
+•Statistics guide the optimizer to estimate row counts.
+•Incorrect/outdated stats lead to bad plans.
+
+11. How do you update statistics?
+•UPDATE STATISTICS per table/index.
+•sp_updatestats for the database.
+•AUTO_UPDATE_STATISTICS option recommended.
+
+12. How do filtered indexes improve query optimization?
+•Reduce index size and maintenance.
+•Improve query selectivity when filtering common predicates.
+
+Execution Plans
+13. What is the difference between Index Seek and Index Scan?
+•Seek: Uses key ranges (efficient).
+•Scan: Reads all rows (less efficient).
+
+14. How do you identify expensive operators in execution plans?
+•Look for the highest cost percentage.
+•Use Actual Execution Plan for runtime details.
+
+15. What does “Key Lookup” mean in execution plans?
+•Non-clustered index missing required columns.
+•Causes extra reads from the clustered index/heap.
+
+16. What does “Spill to TempDB” mean?
+•Hash/Sort operator didn’t get enough memory.
+•Indicates query needs tuning or memory grant adjustments.
+
+17. What is parameter sniffing, and how does it affect query performance?
+•First execution parameter creates a cached plan.
+•Other parameter values may cause suboptimal plans.
+•Fix: OPTIMIZE FOR, RECOMPILE, plan guides.
+
+18. What is a parallel execution plan?
+•Uses multiple CPU threads.
+•Controlled by MAXDOP and cost threshold for parallelism.
+
+19. What is Cardinality Estimation?
+•Process of predicting row counts.
+•Wrong estimation = bad plans.
+
+20. How do you detect plan regressions?
+•Query Store (SQL 2016+).
+•Compare old vs new plans.
+Query Rewriting
+
+21. Why are SARGable queries important?
+•Queries that allow index usage (e.g., WHERE col = 5).
+•Non-SARGable queries (e.g., WHERE YEAR(date) = 2023) force scans.
+
+22. What’s the impact of using SELECT *?
+•Pulls unnecessary data.
+•Increases I/O, memory, and network load.
+
+23. How can rewriting subqueries into JOINs improve performance?
+•JOINs are often more efficient than correlated subqueries.
+•Reduces repeated lookups.
+
+24. What’s the difference between EXISTS, IN, and JOIN for optimization?
+•EXISTS: Best for checking existence.
+•IN: Works well with small sets.
+•JOIN: Useful for fetching related data.
+
+25. Why should you avoid functions in WHERE clauses?
+•Functions on columns (WHERE UPPER(name) = 'JOHN') prevent index usage.
+
+26. How can CTEs (Common Table Expressions) help optimization?
+•Improve readability.
+•May help optimizer reuse plans better than deeply nested queries.
+
+27. When should you use temporary tables vs table variables?
+•Temp tables: Better with large datasets, support stats and indexing.
+•Table variables: Good for small sets, no stats → risk of poor plan.
+
+28. Why is UNION ALL often faster than UNION?
+•UNION ALL skips duplicate elimination (no SORT step).
+
+29. When should you use APPLY operators (CROSS APPLY/OUTER APPLY)?
+•Useful for TVFs or correlated subqueries.
+•Often better than nested loops.
+
+30. Why should you avoid implicit conversions?
+•Cause scans instead of seeks.
+•Example: Comparing an int column to a varchar literal.
+
+Performance Troubleshooting
+31. What DMVs help identify slow queries?
+•sys.dm_exec_query_stats
+•sys.dm_exec_requests
+•sys.dm_exec_query_plan
+
+32. How do you use Query Store for optimization?
+•Captures execution history.
+•Compare plans, detect regressions, and force stable plans.
+
+33. What are Wait Statistics, and how do they help optimization?
+•Show where queries wait (CPU, IO, locks, memory).
+•Helps find bottlenecks beyond T-SQL.
+
+34. What is blocking, and how does it affect query performance?
+•When one query holds locks that block others.
+•Causes long waits and slow execution.
+
+35. What is a deadlock, and how does it impact queries?
+•Circular blocking between two or more queries.
+•One query is killed as a victim.
+
+36. What’s the impact of parameterized vs ad-hoc queries on optimization?
+•Parameterized queries → plan reuse.
+•Ad-hoc queries → plan cache bloat.
+
+37. What is plan cache pollution?
+•Too many single-use plans are filling memory.
+•Fix with Forced Parameterization or Optimize for Adhoc Workloads.
+
+38. How do you troubleshoot queries spilling to TempDB?
+•Check execution plan warnings.
+•Increase memory grant, optimize joins, or add indexes.
+
+39. How do you detect implicit conversions in queries?
+•Execution plan warnings.
+•DMV: sys.dm_exec_cached_plans with XML plan check.
+
+40. What’s the difference between the Estimated and the Actual Execution Plan?
+•Estimated = optimizer guess.
+•Actual = runtime values, includes row counts.
+
+Advanced Optimization Techniques
+41. How do table partitioning and partitioned indexes help optimization?
+•Allow pruning of irrelevant partitions.
+•Improve query speed for large tables.
+42. What is Batch Mode execution, and how does it help?
+•Columnstore indexes allow batch processing of rows.
+•Improves performance in analytics workloads.
+
+43. What is Adaptive Query Processing?
+•Features like Adaptive Joins, Memory Grant Feedback, and Interleaved Execution.
+•Adjusts execution during runtime.
+
+44. How do you optimize queries with dynamic SQL?
+•Parameterize where possible.
+•Use sp_executesql for better plan reuse.
+
+45. How do you handle skewed data distribution in query optimization?
+•Use filtered stats.
+•Add histogram steps.
+•Query hints with OPTIMIZE FOR.
+
+46. What is the Query Hint “FORCESEEK” and when to use it?
+•Forces index seek instead of scan.
+•Use cautiously when the optimizer misjudges.
+
+47. How do you use indexed views for query optimization?
+•Materialized result sets stored physically.
+•Improve performance for aggregate-heavy queries.
+
+48. What’s the impact of locking hints like NOLOCK?
+•Avoids blocking, but allows dirty reads.
+•Faster but riskier in financial/critical systems.
+
+49. What is query compilation time, and how does it affect performance?
+•Time optimizer spends generating a plan.
+•High compilation = bad parameterization or too many ad-hoc queries.
+
+50. What best practices ensure long-term query optimization?
+•Regular index maintenance.
+•Update statistics.
+•Monitor Query Store.
+•Avoid SELECT *.
+•Write SARGable queries.
+•Capture and tune top resource-consuming queries regularly.
