@@ -1,0 +1,324 @@
+1. What is SQL Azure?
+Answer: SQL Azure is a cloud-based relational database that Microsoft offers. The service is based on SQL Server technology and is used in a Microsoft data center. which is hardware owned and maintained by Microsoft.
+
+2. What will happen when the SQL Azure database reaches the maximum size?
+Answer: Should the SQL Azure database reach its maximum size, read or fetch operations will continue to function. However, create, insert, or update operations will be halted. 
+In such a scenario, options include choosing to drop, delete, or truncate data to address the size limit.
+
+3. What are the pricing models/compute options/editions that we have in SQL Azure database currently?
+Answer: DTU or eDTU model again 3 Types
+a. Basic (2gb max size, 7-day backup retention)
+b. Standard (1 TB max size, 7-day backup retention)
+c. Premium (4 TB, 35 days) { high IO+Readscale}
+
+VCore model again 3 Types
+d. General Purpose (provisioned & serverless) (4 TB, 7 days)
+e. Hyper scale (provisioned & serverless) (100 TB, 7 days)
+f. Business Critical (provisioned) (4 TB, 35 days) { high IO+Readscale}
+
+4. In SQL Azure, which encryption security is available?
+Answer: 
+In SQL Azure, Transparent Data Encryption (TDE) is available as an encryption security feature. TDE helps protect sensitive data by encrypting the entire database, including both data and log files, at rest. 
+This encryption provides an additional layer of security for data stored in SQL Azure.
+
+5. What is SQL Azure firewall?
+Answer: SQL Azure Firewall is used as a security mechanism that will work to block the requestsbased on the IP address.
+
+6. How many servers can you create in a single subscription?
+Answer: In the single subscription, it is possible to create 200 servers while using SQL Azure.
+
+7. Can you explain the SQL Azure security?
+Answer: SQL Azure services will allow you to block the request that will be based on IP address by using the SQL Azure firewall. 
+It will use the SQL Server authentication process that will authenticate the connections. By default, SQL Azure connections are SSL-encrypted.
+
+8. What are the options to migrate to SQL Azure from SQL Server?
+Answer: 
+--> migration assistant tool (offline)
+--> migration assistant service(offline) (fullload) online option removed recently by Microsoft. It works only for offline
+--> backup(bacpac) (testing needs to be done before using this)
+--> Manually (script generate+ Data(import/export or linked server)
+--> Transactional Replication (online)
+
+9. How will you sync the on-premise SQL server with Azure SQL Server?
+Answer: DATA SYNC can be used from Azure SQL <- >ON-Premise SQL server to sync the data between databases.
+
+10. On which factors current pricing model for SQL Azure consumption depend?
+Answer: The charges for SQL Azure are currently based on the following two factors
+        --> Size
+        --> Data Transfer
+11. How to change the collation for the existing DB?
+Answer: 1. First, export the DB into the storage location(backpack file)
+        2. While importing the backpack file, change the collation
+
+12. How to migrate an 8 TB DB to the IAAS model with minimal downtime? Any easiest way?
+Answer: 1. Create a log-shipping from On-Premise to IAAS Model DB
+        2. Once most of the data has been transferred, take the downtime
+        3. Restore the last log backup to the destination IAAS
+        4. Break the log-shipping and make the secondary as with recovery(read and write DB)
+        5. Connect the application to the newly created IAAS DB
+
+13. Explain the scenarios in which you can reduce the cost of Azure.
+Answer:
+---> Keep the database in the right service tier. No excessive resources. No inadequate resources. Regularly monitor the resource usage graph and take the decision.
+---> You can keep the DB in low tier in non-business hours, like night times and/or weekends, if you don't use many resources during these hours.
+---> In Geo-replication, you can keep the Secondary database in the lower tier. There is no rule to keep the databases (primary and secondary) in the same tier. This is a great advantage in Geo replication.
+---> Very important thing is, try to use Geo_Replication for only the HA option. I mean, if you have the reports, use geo-replication and connect to the secondary DB. 
+     For DR, mostly not required Geo-Replication as failure cases of Azure SQL Databases are very low here. Here, you cannot start/stop the service, and no disk failures, no antivirus, and no Windows restarts.
+---> Also use the Data-Sync option for HA. Data-Sync is an object-level and works like a Transaction replication. Here you have the sync frequency as well.
+---> If possible, make the DB's inan  elastic pool rather than keeping it in a single model.
+---> Stop the VMs when you don't really need them. You can also schedule VMs to stop daily
+---> If you have requirements like need more storage with less CPU and Memory, and/or less CPU with more memory, and/or vice-versa, go for the  VCore model rather DTU Model. Vcore model is like Independent scaling IO, CPU and Memory.
+---> You can use azure calculator to know more about the price differences
+---> Take help of DTU-Calculator and AZURE-Calculator to estimate the costs and know the price differences.
+---> Go for reservations/Hybrid concept for discounts. You can get almost 75% discounts.
+---> If Intermittent, unpredictable usage of databases, go for servers less model in General purpose Vcoremodel to save the huge cost.
+---> For automating the jobs, go for using runbooks, which are much cheaper than elastic jobs
+
+https://docs.microsoft.com/en-us/azure/azure-sel/database/serverless-tier-overview
+
+14. How can I sync the Data from the Azure database to the on-premise database?
+Answer: The Data-Sync option is available in the Azure database.
+
+15. How to refresh the prod database in non-prod servers?
+Answer: Below is the syntax to refresh the DB. Run the below command on non-prod servers
+
+CREATE DATABASE dba AS COPY OF sqlprodserver.dba
+( EDITION = 'standard', SERVICE_OBJECTIVE = '50', MAXSIZE = 500 MB ) ;
+
+Check the status of the restore process using the commands
+
+SELECT * FROM sys.dm_database_copies
+SELECT state_desc, * FROM sys. databases
+where state_desc<>'online'
+SELECT major_resource_id
+, percent_complete
+operation
+start_time
+last_modify_time
+, DATEDIFF(MINUTE,start_time,last_modify_time) Duration_Minutes
+FROM master.sys.dm_operation_status
+WHERE operation LIKE '%DATABASE RESTORE%."
+
+16. How to copy data from one database to another database in Azure SQL DB?
+Answer: We can do 2 ways easily. Either import/export data or using External table, we can copythe data.
+
+17. I want to migrate my on-premise DB to the DTU model. How do I know how many DTUs are really required?
+Answer: You need to choose the DTU calculator.
+        Normally, 125 Standard DTUs equal 1 CPU, and 100 premium DTUs equal 1 CPU
+http://dtucalculator.azurewebsites.net/
+
+18. I want to choose the best Azure pricing model that is best suited for my application for my on-premise databases.
+Answer: Use the Azure calculator to decide the price. Also, you can use other cloud provider calculators and compare the prices
+https://azure.microsoft.com/en-in/pricing/calculator/
+
+19. How many ways are there to automate the jobs in Azure SQL DBA?
+Answer: a) Windows Scheduler
+        b) On-premises SQL Agent (usinga  linked server to Azure DB)
+        c) Runbooks through automation accounts (Zero cost)
+        d) Elastic Jobs (Easy to maintain a large number of servers and DBs with low price)
+
+20. How can I make two databases read and write, and ensure that the data is in sync, like merge replication in on-premises?
+Answer: Create a Data Sync between 2 Azure databases.
+
+21. What is a serverless Database?
+Answer: Serverless is a compute tier for single databases in Azure SQL Database that automatically scales compute based on workload demand and bills for the amount of compute used per second. 
+The serverless compute tier also automatically pauses databases during inactive periods when only storage is billed and automatically resumes databases when activity returns.
+Scenarios well-suited for serverless compute
+D Single databases with intermittent, unpredictable usage patterns interspersed with periods of inactivity and lower average compute utilization over time.
+Single databases in the provisioned compute tier that are frequently rescaled, and customers who prefer to delegate compute rescaling to the service.
+New single databases without usage history where compute sizing is difficult or not possible to estimate prior to deployment in SQL Database.
+
+22. How to check the progress of the geo replication?
+Answer: Using the query below.
+    SELECT status, * FROM sys.dm_operation_status WHERE major_resource_id = 'myddb" ORDER BY start_time DESC;
+0 = Pending
+1 = In progress
+2 = Completed
+3 = Failed
+4 = Cancelled
+
+23. What is a failover group in Azure databases?
+Answer: Auto-failover group is an Azure SQL database feature that replicates one or a group of databases to the secondary Azure SQL server in a cross-region. We cannot have a secondary
+server in the same region. This feature is used to failover all the databases in the failover group in case of a disaster, and the failover is automatic.
+
+24. What is the difference between a failover group and Geo-Replication?
+Answer: Auto-failover group uses the same underlying technology as geo-replication. The following are some of the differences between auto-failover groups and active geo-replication.
+--------> Geo-replication replicates a single database to the secondary, whereas auto- failovergroups replicate a group of databases that are added to the failover group
+--------> Auto-failover supports managed instances, whereas geo-replication does not
+--------> Both manual and auto-failover are available in an auto-failover group,s whereas onlymanual failover is possible in Azure SQL active geo-replication
+--------> Auto-failover supports only one secondary server. If you need multiple secondarydatabases, consider using active geo-replication
+
+25. What is the difference between Manual Failover and automatic failover in Geo-Replication?
+Answer: When a planned/manual failover is initiated, the secondary databases are fully synchronized with Azure SQL primary databases before switching the roles. In this case, there is no data loss.
+
+Forced failover to do a manual forced failover, which immediately switches the roles without synchronizing withthe  primary. This may result in data loss.
+
+26. How to change the MAXDOP setting in Azure DB?
+Answer: Below in Azure, once you changed the MAXDOP setting to 1. You can see only serial execution plans.
+
+SELECT * FROM sys.database_scoped_configurations
+ALTER DATABASE SCOPED CONFIGURATION SET MAXDOP = 1
+
+27. Can we restore the MI database in any on-premise or IAAS server?
+Answer: Always MI DB maintains the higher build version, so you can't restore in SQL Server 2019 and its prior versions. But you can restore in 2022 SQL Versions
+
+29. What is Azure Cosmos DB?
+Answer: Azure Cosmos DB is a Planet-scale, Globally Distributed Database provided by Azure. It is Schema-agnostic and hence considered a NoSQL database. 
+Cosmos DB provides Incredibly Low Latency in the order of Milliseconds. Cosmos DB supports a wide range of APIs, including SQL, MongoDB, Cassandra, Graph, Table, etc.
+
+30. What do you understand by auto scaling in Azure?
+Answer: Azure provides automatic scaling of the services when needed. It depends on the use, time, and traffic that comes to our application. For example, the traffic will be
+higher during the deployment. Then Azure will automatically modify the setting and provide the resources as required
+
+31. Can we setup firewall rule at the DB level?
+Answer: Yes, we can. Using the below There's (still) no way to do this using the Azure portal, so you will need to connect to the database using SQL Server Management Studio (SSMS), with a user login
+
+To check the existing rules:
+SELECT * FROM sys.database_firewall_rules
+
+To create a new rule:
+EXECUTE sp_set_database_firewall_rule N'<Rule Name>','<Start IP>','<End Ip>';
+
+Example:
+EXECUTE sp_set_database_firewall_rule N'Alowed Range','46.189.189.100.'
+
+32. What is Azure Blob Storage?
+Answer: Azure Storage is one of the cloud computing PaaS services provided by the Microsoft Azure team. It provides cloud storage that is highly available, secure, durable, scalable, and redundant. 
+It is massively scalable and elastic. It can store and process hundreds of terabytes of data, or you can store the small amounts of data required for a small business website.
+
+33. Table storage vs azure table difference
+Answer: There is a fundamental difference between an SQL table and an Azure table. While Azure tables are capable of storing one type of data in a row and another type of data in another row, SQL DB tables are designed to store the same type of data in every row.
+
+34. What are the types of disks used by VMs?
+Answer: · Operating system disk (C drive)
+        · Temporary disk (D drive)
+        · Data disk
+
+35. What are the various subscription architectures in Azure?
+Answer: · Free
+        · MSDN
+        · Enterprise
+        . Pay As You Go
+
+36. What are the major advantages of Cloud computing?
+Answer: We have seen that Cloud computing is an internet-based computing platform whereby different resources, software, and information are available as per Pay-As-You-Go model.
+Many characteristics that actually define the Cloud computing find herewith the following major benefits -
+
+a) Scalability - It is the ability of the application to handle the growing amount of work without degrading performance. Scalability is of two types -
+1. Vertical or Scale Up - Here we increase the capacity of the existing hardware or machine, for example, increase the RAM of your machine from 4GB to 16GB.
+2. Horizontal or Scale Out - Here we increase the count of machines without increasing the capacity, for example, put another server of the same type of exiting server having 8GM RAM and all other configurations.
+
+b) Business Agility - It defines the mark where your application can be evolved or changed depending on the business necessities.
+c) High Availability - High availability means zero downtime of the application; in other words, your application can be available in most downtime scenarios, such as
+
+1. Hardware failures
+2. Application updates
+3. Configuration changes
+4. OS update restarts
+5. Heavy load restarts
+
+d) Pay-As-You-Go model - This is a worthwhile feature of the cloud; you need to pay only for what you use of the services over there. Besides, if not required, the services, meanwhile, you can free or de-allocate them, and that is not chargeable.
+e) Focus from CapEx to OpEx - Due to the Pay-As-You-Go model, it became easy to move from Capital Expenditure (CapEx) to Operational Expenditure (OpEx), where the organization can focus on operations rather than infrastructure.
+f) Fault Tolerance - It means we can access and continue operating our system in full capacity and functionality in spite of failure of some components. Fault tolerance is applicable due to various replications and redundancy strategies applied by the Microsoft Azure.
+g) Security - Microsoft provides some of the most advanced security technology in the azure-cloud like Threat Intelligence, Advanced Threat Analytics, Azure Information Protection, and Multi-Factor Authorization.
+h) Azure's Integrated Development Environment - In addition to the above benefits, Azure has the advantage of having the world's leading development environment baked straight in - Visual Studio.
+
+37. What are the different Service Model in Cloud Computing?
+Answer: In fact, there are various ways to consume and utilize any cloud-based service; there are three main types. Sometimes this three-service model is called the cloud computing stack because they build on top of one another.
+           · Infrastructure as a Service (IaaS) - Host applications
+           · Platform as a Service (PaaS) - Build applications
+           · Software as a Service (Saas) - Consume applications
+
+Infrastructure as a Service (IaaS)
+Using the laas model, you can set up and configure the elements of infrastructure as a service as per your preference, like Virtual Machine, Operating System, Network, Storage, Load Balancer, etc. 
+In brief, the laas model can be used to host applications. For example - Azure VM, VNET, etc.
+
+Platform as a Service (PaaS)
+Using the PaaS model, a developer gets a platform to publish the application without worrying about the underlying software or hosting environment at all. It is something about abstracting developers from the essential infrastructure, to enable building the applications quickly.
+For example - Web Apps, Mobile Apps, API, etc.
+
+Software as a Service (Saas)
+Using the SaaS model, you can get fully provisioned services and consume the well-defined features of the application. It is something you consume as a service that you need for your business.
+For example - Office 365, Salesforce.com, CRM online, etc.
+
+38. What is Azure Storage?
+Answer: Azure storage is one of the PaaS that provides highly available, secure, durable, scalable, and redundant cloud storage solutions. 
+Azure storage option is one of the best computing services that supports both legacy application development synced up with Azure SQL and modern development synced up with Azure No-SQL table storage.
+
+Based on types of data storage in Azure can be classified into two segments, Relational as well Nonrelation data storage.
+
+a) Relational data storage
+It is a kind of storage to store relational data in the cloud. Azure SQL storage is one of the Paas services to provide such facilities.
+b) Non-Relational data storage
+It is a kind of storage to store a variety of data like documents, media files, and NoSQL data over the cloud, which can be accessed using REST APIs.
+
+Mostly the Azure provides four types of storage options based on the data type.
+. Blob Storage - Used to store unstructured data, such as text or binary data, that can be accessed using HTTP or HTTPS.
+· File Storage - Used to manage file shares for cloud or on-premises deployments.
+· Queue Storage - Used to transfer a massive amount of data between cloud apps asynchronously.
+. Table Storage - It is Microsoft's No-SQL database, which stores data in a key-value pair format, schema-less storage.
+
+39. What is an Azure SQL Database?
+Answer: 
+Azure SQL Database is Microsoft's Database as a Service (DaaS) or a virtual database in the Azure cloud, which gives you a robust data store with the flexibility to scale to meet demand.
+It is based on the SQL Server database technology and built on an Azure cloud computing platform. 
+Azure SQL enables you to store relational data in the cloud and quickly scale the size of your databases up or down as business demands change. 
+
+Azure SQL Database is the intelligent, fully managed relational cloud database service that provides the broadest SQL Server engine compatibility. 
+It is offered either as a Standalone database or an elastic database pool, and is priced in three tiers: Basic, Standard, and Premium. It offers different performance levels to accommodate a variety of workloads.
+
+Microsoft Azure SQL Database has a feature; it automatically creates backups of every active database. Every hour, a backup is taken and Geo-replicated to enable the one-hour recovery point objective (RPO) for Geo-Restore.
+
+40. What is Azure SQL Data Warehouse?
+Answer: Azure SQL Data Warehouse (SQL DW) is a cloud-based Enterprise Data Warehouse (EDW) that leverages Massively Parallel Processing (MPP) to quickly run complex queries. In fact, it is a managed petabyte -scale MPP analytical data warehouse built on a foundation of SQL
+Server and run as part of the Microsoft Azure Cloud Computing Platform with controls to manage Compute and storage that are independent.
+Azure SQL Data Warehouse is a fast, flexible, and trusted analytics platform in the cloud for all your data. It can work with relational data as well as non-relational data via Polybase, a storage
+layer for both relational and HDFS data. The Azure SQL Data Warehouse is a key component of an end-to-end big data solution in the Cloud. Data is ingested into big data stores from a variety of sources into the cloud ecosystem
+and inside the big data store, Hadoop, Spark, and machine learning algorithms prepare the data. Post preparation of data, SQL Data Warehouse uses PolyBase to query the big data stores. PolyBase uses standard T-SQL queries to bring the data into SQL Data Warehouse.
+
+41. What is Cloud Computing?
+Answer: Cloud computing is the general term which used for providing hosted services over the internet and primarily focused to Operation Expenditure (OpeEX) rather than Capital
+Expenditure (CapEX). In other words, it is the use of servers on the internet to Store and Process the data.
+
+Basically, the Cloud computing is an abstraction over the traditional setup of infrastructure prerequisites, which makes the development and deployment significantly stress-free based on
+a Pay-As-You-Go model. It means you need to pay only for the used services, and you do not need to worry about the infrastructure and all other ecosystems, like your electricity and water charges in daily life.
+
+In brief, Cloud Computing = Software as a Service (Saas) + Platform as a Service (PaaS) +Infrastructure as a Service (IaaS).
+
+42. In Azure DB, are select queries blocked by DML queries?
+Answer: Azure DB is in READ_COMMITTED_SNAPSHOT isolation. So, select queries will not be blocked by DML Queries.
+
+Note: No need to use NOLOCK in Azure SQL DB
+
+43. Can we change the recovery model of the Azure DB?
+Answer: No, you cannot. Recovery model of the DB is FULL always.
+
+44. Can we take the backups and restore them for AZURE DB?
+Answer: Backups are automatically scheduled, and you cannot takea  manual database backup, and can't restore the DB using manual backups
+
+45. Is the Restore/Create with Overwrite db supported in Azure DB?
+Answer: Restore with Overwrite is not supported on Azure SQL DB. Rename existing and restore/create with the same name.
+
+46. What's the database backup retention period of the AZURE DB?
+Answer:
+· Basic: 7 Days
+· Standard: 7 Days
+· Premium: 35 Days
+· General Purpose: 7 days
+· Business critical: 35 days
+· Hyper scale: 7 Days
+
+47. Is there any option to keep the backups more number of days than its defaults?
+Answer: Yes. Existing default days are not enough for the continuity plans. You can use long-term backups, where you can keep a maximum of 10 Years.
+
+48. If the server is deleted, can we still restore the backups of the DB in that server?
+Answer: No. Once the server is deleted, DB backups will also be deleted automatically
+
+49. Can we download/see automated backups?
+Answer: Unfortunately, automated backups are not available for download or direct viewing
+
+50. Can we keep the Azure DB in single-user mode?
+Answer: No. You can't keep the database in Single User mode. This won't work
+        ALTER DATABASE DBA SET SINGLE_USER WITH ROLLBACK IMMEDIATE
+
+
