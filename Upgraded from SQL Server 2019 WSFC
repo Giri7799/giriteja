@@ -1,0 +1,45 @@
+Upgraded from SQL Server 2019 WSFC and Always On High Availability group databases to 2022/2025.
+Upgrade method: Side-by-side migration instead of in-place.
+Target: Reduce risk, allow rollback, and modernize HA/DR architecture
+Production Architecture:
+Two data centers: Primary data center (2 nodes) and Disaster Recovery data center (1 node)
+• Quorum model: Node majority (3 nodes)
+• Multi-subnet configuration:
+ 2 IPs for WSFC
+ 2 IPs for AG Listener
+• Availability Group:
+• Synchronous replicas in primary DC (Data Center)
+• Asynchronous replica in DR (Disaster Recovery) –avoid latency.
+
+Planning and Preparation:
+Reviewed existing SQL Server 2019 environment (WSFC, Always on High Availability, Listener, etc.
+• Requested Windows Server 2022 VMs (3)
+• Installed SQL Server 2022 Enterprise Edition on all nodes
+• Designed disk layout for data, logs, TempDB, and backups
+• Built and validated WSFC between Primary and DR
+• Enabled Always on High Availability Group with the cluster name
+• Configured security, firewall rules, SSL, and Always On AG with Listener
+
+Testing (Non-Production)
+• Migrated test databases using backup and restore
+• Added databases to the Availability Group
+• Verified synchronization health
+• Validated application connectivity via listener
+• Performed failover testing
+• Documented steps for production approval
+Production Cutover
+• Scheduled approved downtime window
+• In 2019, stopped all application and user access to the 2019 SQL Server (source).
+• In 2019, backed up TDE certificates and private keys (2019 SQL Server) and copied them to the new SQL Server 2022 (target) applicable location to restore all encrypted database backups.
+• In 2019, suspended and removed all AG databases, took a full backup of all 2019 databases, and copied or moved these backups to the 2022 backup directory.
+• In 2022- Restored or recreated Database Master key, Server Cert from the previous (2019) security certificate, and private key.
+The rest in 2022-
+• Restored production databases and ensured full backup, full recovery model, compatibility level, and database owner after restoring.
+• Mapped users and validated permissions.
+• Updated compatibility levels.
+• Added databases to the Availability Group and enabled TDE.
+• Scripted server-level objects as needed from 2019 to 2022.
+• Deployed SSIS, maintenance plans, and monitoring jobs.
+Post-Migration Validation
+• Failover and failback testing between replicas
+• Shared the listener name with the application teams
