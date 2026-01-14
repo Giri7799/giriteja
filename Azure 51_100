@@ -1,0 +1,343 @@
+51. Can we keep the Azure DB in offline mode?
+Answer: No, keeping the database in offline mode is not supported and will not work
+ALTER DATABASE DBA SET OFFLINE WITH ROLLBACK IMMEDIATE
+
+52. How can you protect the database from accidental deletion?
+Answer: You can place a lock, which is available in the Azure portal. This will help you to stop accidental deletions. When you try to do a deletion, you will get an error.
+
+53. What is Tag(s) in azure?
+Answer: Azure tags are name-value pairs that are used to organize resources in the Azure Portal. You can apply tags for individual resources or tag the resource group that they are part of. 
+Tags can help you to know the actual cost incurred for the specific resources.
+
+54. Do we have ErrorLog in Azure SQL Database?
+Answer: Azure SQL Database doesn't really have its own error log, but you can get by running the below query in the master db.
+Select * from sys.event_log
+It will give you information about the following events:
+
+. Successful connections
+. Failed connections
+. Throttling issues
+. Blocked by firewall attempts
+. Connection termination
+
+55. What is Azure Advisor?
+Answer: Azure Advisor is a report that pulls in information from the following areas. It gives you the best recommendations
+High Availability
+Security
+Performance
+Operational Excellence
+Cost
+
+56. What is Automatic Tuning in Azure SQL Database?
+Answer: Automatic tuning for Azure SQL Database uses the CREATE INDEX, DROP INDEX, and FORCE LAST GOOD PLAN database advisor recommendations to optimize your database performance.
+
+57. Can we tune the DB without Automatic Tuning in Azure SQL Database?
+Answer: Yes. We can use DMVs like in on-premise to find out the long-running queries, missing indexes, unused indexes, duplicate indexes, index fragmentations, execution plans, and many.
+
+58. What you will see if you run select @@version?
+Answer: You will see below.
+Microsoft SQL Azure (RTM) - 12.0.2000.8 May 15 2020 00:47:08 Copyright (C) 2019 Microsoft
+
+59. Can we keep the Azure DB's in lower versions as we do in on-premise?
+Answer: No. We only have one version (latest always) in azure db, and this will be automatically updated by Microsoft
+
+60. How can one determine whether a deadlock has occurred in a database or not?
+Answer: Run the query in the master database and check for the deadlock info
+Query1:
+SELECT * FROM sys.event_log
+WHERE event_type = 'deadlock';
+To know more about deadlock info, use the query
+Query2:
+WITH CTE AS (
+SELECT CAST(event_data AS XML) AS [target_data_XML]
+FROM sys.fn_xe_telemetry_blob_target_read_file('dl', null, null, null)
+
+SELECT target_data_XML.value('(/event/@timestamp)[1]', 'DateTime2') AS Timestamp,
+target_data_XML.query('/event/data[@name="xml_report"]/value/deadlock') AS
+deadlock_xml,
+target_data_XML.query('/event/data[@name="database_name"]/value').value('(/value)[1]',
+'nvarchar(100)') AS db_name
+FROM CTE
+
+Once the results are shown, save the deadlock_xml column data into the .xdl (example deadlock1.xdl) format and open the saved file in the MGT Studio. You can see the deadlock information in the graph(s).
+----
+You can also use extended events to capture deadlocks.
+
+61. Sometimes deadlock query(Query2) will take a lot of time to show the information.
+Sometimes, even after runningfor  days, it won't show any result. What is the reason?
+Answer: Due to the high number of deadlocks captured in the backend file, it is tough to retrieve that information. It's just like getting the rows from a terabyte table. 
+In this case, only the Microsoft Team can help. Just raise the ticket with MS, and they will clear the file. Once you clear the file, you can access data more easily and quickly. 
+The best recommendation here is to use extended events if you are seeing more deadlocks in the day.
+
+62. What is SQL Server Backup / Restore from URL?
+Answer: You can take the on-premise database backups to Azure storage, and you can restorefrom azure storage as well. Normally, we can use this option to maintain the long-term backups.
+
+Syn: Backup DATABASE [DBA] TO URL =
+N'https://rajstorage2.blob.core.windows.net/backups/DBA_Jan_23_2019_3_56PM.bak'
+WITH CREDENTIAL = 'Credrajstorage2', COMPRESSION, STATS = 1;
+
+Restore DATABASE [DBA] from URL =
+N'https://rajstorage2.blob.core.windows.net/backups/DBA_Jan_23_2019_3_56PM.bak'
+WITH CREDENTIAL = 'Credrajstorage2', COMPRESSION, STATS = 1;
+
+63. What is the grace period in the automatic failover group of Azure DB?
+Answer: The grace period is the time the SQL service waits before triggering automatic failover when an outage occurs. We must set the grace period accordingly to reduce data loss.
+
+For example, if you set a 1-hour grace period, the DB won't failover for 1 hour, and there is a chance of self-recovery within one hour. This would be fine, with no data loss.
+Suppose if the DB won't recover within one hour, an automatic failover happen same after one hour. Here you may see data loss of one hour.
+
+64. What are the roles and responsibilities of AZURE DBA comparatively with On-premise DBA?
+Answer: 1. Migration of databases from on premise to the Cloud 
+        2. Keeping the databases in the right pricing tiers based on their performance history (Graph)
+        3. Choosing the databases in Single (or) elastic pool models
+        4. Choosing the databases in the serverless model
+        5. Automating the Scale-up and scale-down of the databases based on their daily usage.
+        6. Creation of users/roles and assigning them to minimum privileges
+        7. Keeping the backups according to the business policy.
+                a. Default Backups
+                b. Long Term Backups
+        8. Keeping the databases in the right backup redundancy
+                a. Locally redundant storage (LRS)
+                b. Zone-redundant storage (ZRS)
+                c. Geo-redundant storage (GRS)
+        9. Refresh/Restore the non-prods with production database copies
+        10. Point-in-time restore in case of data disaster
+        11. High availability and Disaster recovery(HA/DR) techniques of Azure SQL Databases
+                a. Failover groups
+                b. Geo Replication
+                c. Data Sync
+        12. Implementing Transparent Data Encryption and Data Masking
+        13. Implementing Purging, Archiving, and Partitioning on large data sets
+        14. Creating database Maintenance plans using Automation accounts, elastic jobs, and logic apps
+                a. Schema updates
+                b. Adding indexes in non-peak hours
+                c. DB maintenance
+                d. Statistics updates
+                e. Index maintenance
+                f. Data maintenance, etc.
+         15. Monitoring database performance using
+                a. Intelligent Performance
+                b. Query Store
+                c. DMV's etc.
+         16. Creation of alerts
+                a. Database space percentage
+                b. DTU/CPU usage
+                c. Deadlocks
+                d. Failed connections
+                e. Tempdb usage, etc.
+         17. Know usage of External Tables
+         18. Maintaining the multiple subscriptions and resource groups according to the prod and non-prod usage. Check the type of subscriptions and their prices
+         19. Know and usage of Reservations and Azure Hybrid Benefits
+         20. Keeping the right database settings/properties using Data-scoped settings and other settings like Compatibility level
+         21. Creation of a linked server from on premise/MI to Azure SQL DB
+
+65. How to set up alerts in AZURE Database?
+Answer: Azure SQL Database has rich native monitoring capabilities that can monitor all CPU/IO/Memory and SQL Server counters, blockings, deadlocks, expensive queries,s and whatnot.
+
+66. How to load data from an on-premise database to azure database?
+Answer: We can use two options
+        . Use import and export in management studio
+        . Create a linked server in on-premise DB to the Azure DB and write an insert query
+
+67. What are Backup Techniques for SQL Server on Azure Virtual Machines?
+Answer: We have 3 techniques to take the database backups in VM
+          · Automated backup.
+          . Azure backup for SQL VM (that's what MS calls it).
+          . Manual backup (URL Backups). Below are the differences among them
+
+68. How many disk types do we have in Azure VM
+Answer: We have 3 types. SSD disks are faster than HDDs. For prod DBs,s we need to go for Premium SSD Disks for high IOPS
+
+69. Scenario: We have a VM, and we use this one only during the day. Do we have any option to shut down automatically every day at so and so time? And can we notify before shutdown?
+Answer: Yes. We have an option for this
+
+70. Do we have the DTU model in the Managed instance and SQL in the VM?
+Answer: No. We have only the Vcore model available in MI and SQLVM. I mean, we need to choose and Assign no of CPU's, Memory, and Disks individually.
+
+71. What is a reservation in Azure?
+Answer: Reservation is nothing but a discount applied for the resources(Databases/VMs) after you pre- buy for 1 or 3 years before itself. You may get up to 73% discount you may choose thisoption.
+We can check this info in azure calculator https://azure.microsoft.com/en-in/pricing/calculator/
+
+72. What is the Hybrid benefit in Azure?
+Answer: Azure will give an additional 50% discount if you have sql server license. We can check this info in azure calculator https://azure.microsoft.com/en-in/pricing/calculator/
+SQL License
+Pay as you go
+Azure Hybrid Benefit
+This option is also available for VMs too
+
+73. What is Azure Storage?
+Answer: Azure storage is a place where we can keep the data objects. The storage account provides a unique namespace for your Azure Storage data that is accessible from anywhere in the world over HTTP or HTTPS. 
+Data in your Azure storage account is durable and highly available, secure, and massively scalable.
+
+74. What kind of data can we keep in Azure Storage?
+Answer: The Azure Storage platform includes the following data services:
+        . Azure Blobs: A massively scalable object store for text and binary data. Also includes support for big data analytics through Data Lake Storage Gen2.
+        . Azure Files: Managed file shares for cloud or on-premises deployments.
+        . Azure Queues: A messaging store for reliable messaging between application components.
+        . Azure Tables: A NoSQL store for schemaless storage of structured data.
+        . Azure Disks: Block-level storage volumes for Azure VMs.
+
+75. How can we access the Azure storage?
+Answer: We can access storage by using the URL and its access keys. URL: httos://devstorage1729.blob.core.windows.net/backups
+
+76. What is COOL and HOT options ina  storage account?
+Answer: Azure storage offers different access tiers, which allow you to store blob object data most cost-effectively. The available access tiers include: Hot - Optimized for storing data that is accessed frequently. 
+Cool - Optimized for storing data that is infrequently accessed and stored for at least 30 days
+
+77. What is Azure Storage Explorer? And how are we going to connect to this?
+
+Answer: Azure Storage Explorer is a free tool given by Microsoft that helps you to easily access the Azure storage account through any device on any platform, be it Windows, MacOS, or Linux. 
+You can easily connect to your subscription and manipulate your tables, blobs, queues, and files.
+
+78. What is the major difference between Blob storage and File storage?
+Answer: Blob (Binary large objects) storage is for keeping large files that are unstructured, such as images, video, music files, backup files, etc.
+
+File storage you can use to keep regular file shares in the cloud. Best to keep the configuration files
+
+79. What is hot patching in AZURE SQL Database?
+Answer: Azure SQL Database always maintains the high/latest version of the SQL engine. To achieve this, it requires periodic updates to the service that can take the database offline for a second.
+
+80. Can I change the compatibility level of the Azure SQL Database?
+Answer: Yes, you can. You can make the transition from the 2008 version to the latest version.
+
+81. Can we use TDE for the Azure SQL Database?
+Answer: YES. Transparent Data Encryption (TDE) encrypts SQL Server, Azure SQL Database, and Azure SQL Data Warehouse data files.
+USE master;
+GO
+CREATE MASTER KEY ENCRYPTION BY PASSWORD = '<UseStrongPasswordHere>';
+go
+CREATE CERTIFICATE MyServerCert WITH SUBJECT = 'My DEK Certificate';
+go
+USE AdventureWorks2012;
+GC
+CREATE DATABASE ENCRYPTION KEY
+WITH ALGORITHM = AES_128
+ENCRYPTION BY SERVER CERTIFICATE MyServerCert;
+GO
+ALTER DATABASE AdventureWorks2012
+SET ENCRYPTION ON;
+GO
+
+82. What is dynamic data masking?
+Answer: Dynamic data masking (DDM) limits sensitive data exposure by masking it to non- privileged users. 
+Dynamic data masking helps prevent unauthorized access to sensitive data by enabling customers to specify how much sensitive data to reveal with minimal impact on the application layer.
+
+83. What are the functions available in data masking?
+Answer: We have the following functions available to use for dynamic masking
+· Default
+· Email
+. Random
+. Custom String (partial)
+
+84. What is an external table(PolyBase)?
+Answer: An external table is a mechanism to achieve cross queries/elastic queries from one database table to another database table. As we know, cross queries are not possible in Azure SQL databases.
+
+The following steps configure elastic database queries for vertical partitioning scenarios that require access to a table located on remote SQL databases with the same schema:
+CREATE MASTER KEY mymasterkey
+CREATE DATABASE SCOPED CREDENTIAL mycredential
+CREATE/DROP EXTERNAL DATA SOURCE mydatasource of type RDBMS
+CREATE/DROP EXTERNAL TABLE mytable
+Script:
+CREATE MASTER KEY
+-- DROP DATABASE SCOPED CREDENTIAL [CRE_SEA-SQL-DB08D]
+CREATE DATABASE SCOPED CREDENTIAL [CRE_SEA-SQL-DB08D] WITH IDENTITY = 'saadmin',
+SECRET = 'Shaulin#1234';
+-- drop external data source [EXT_SEA-SQL-DB08D]
+CREATE EXTERNAL DATA SOURCE [EXT_SEA-SQL-DB08D] WITH
+(TYPE = RDBMS,
+LOCATION = 'sea-sql-db08d.database.windows.net',
+DATABASE_NAME = 'AdventureWorksLT',
+CREDENTIAL = [CRE_SEA-SQL-DB08D]
+);
+-- drop external table [dbo].[Address]
+CREATE EXTERNAL TABLE [dbo].[Address](
+[AddressID] [int] NOT NULL,
+[AddressLine1] [nvarchar](60) NOT NULL,
+[AddressLine2] [nvarchar](60) NULL,
+[City] [nvarchar](30) NOT NULL,
+)
+WITH
+(
+DATA_SOURCE = [EXT_SEA-SQL-DB08D],
+-- SCHEMA_NAME = 'SalesLT',
+-- OBJECT_NAME = 'Address'
+);
+sp_spaceused [Address] - no size
+
+85. Can we insert the data into the external table?
+Answer: No. You can't. Only you can read the data.
+
+86. How external table work?
+Answer: It will work like as Linked server in on premise where it uses the username and password to connect the DB from one server to another server or within the same server. 
+But for each table, you have to create a new external table
+
+87. Can we do import/export on the external table?
+Answer: No. You can't. Only you can read the data
+
+88. Can we keep the same names for the normal table and external table?
+Answer: No. You can't. As the same object names, you can't keep them over here.
+
+89. Can we create column store indexes for the Azure SQL databases?
+Answer: Yes. You can. But it supports only in Premium tiers
+
+90. What is the Read-scale out option in Azure?
+Answer: This option is available in Premium Tier and Business Critical Tiers. The Read Scale-Out feature allows you to load-balance SQL Database read-only workloads 
+using the capacity of one of the read-only replicas instead of sharing the read-write replica. 
+This way, the read-only workload will be isolated from the main read-write workload and will not affect its performance.
+
+As part of the High Availability architecture, each database in the Premium and Business Critical service tier is automatically provisioned with a primary replica and several secondary replicas.
+The secondary replicas are provisioned with the same compute size as the primary replica
+
+91. How to check DB is a read/write DB or just a read DB?
+Answer: The query would help us.
+SELECT DATABASEPROPERTYEX(DB_NAME(), 'Updateability')
+
+92. Can I scale out the DB, which is inthe  premium tier under the availability group, to the Vcore General Purpose model?
+
+Answer: No. You can't. Here, the db inthe  Premium tier, which is under the read scale-out option. So, you need to remove the DB from the availability group and remove the read scale-out option. 
+Then you will be able to move the DB in the Vcore general-purpose model.
+
+93. Is the query correct? Where is the problem, if it is not correct?
+CREATE DATABASE dba AS COPY OF [sqlprodserver.database.windows.net].dba
+
+Answer: The right query is CREATE DATABASE dba AS COPY OF [sqlprodserver].dba Here ".database.windows.net" you should not include as it will take automatically. 
+If you still mention it in the query, you will get an error.
+
+94. What is SLA for Azure Databases?
+Answer: Azure SQL Database service has updated its service-level agreement (SLA) to provide up to 99.995% availability. 
+In addition, Microsoft is introducing new financially backed SLAs for common business continuity metrics for the Business Critical service tier, including a 100% SLA
+for a 5-second recovery point objective (RPO) and a 100% SLA for a 30-second recovery time objective (RTO). Azure SQL Database is the first relational database service in the industry to offer such guarantees.
+
+95. Scenario, suppose I have 10 databases. In which scenario cost become more?
+        1. 10 databases in one subscription and one server
+        2. 10 databases in one subscription and two servers. One in 5 and another in 5
+        3. 10 databases in 2 subscriptions and two servers. One in 5 and another in 5
+Answer: In all the above cases, the cost is the same. Cost will depend on SIZE+COMPUTE and not depend on no of subscriptions and servers.
+
+96. Can we change the Isolation levels of the Azure databases?
+Answer: Yes. It is very much possible both at the database level and the query level
+DB level:
+ALTER DATABASE [DBA] SET ALLOW_SNAPSHOT_ISOLATION ON
+GO
+Transaction level:
+SET TRANSACTION ISOLATION LEVEL
+{ READ UNCOMMITTED
+I READ COMMITTED
+| REPEATABLE READ
+| SNAPSHOT
+| SERIALIZABLE
+
+97. What is the maximum OLTB DB size you can keep in azure single instance model?
+Answer: 100 TB you can keep in the Hybrid Vcore model.
+
+98. Can we enable trace flags in the Azure database?
+Answer: No. You can't enable. You will get the following error. And by default, some of the trace flags are enabled. If you want, you can check by running DBCC Tracestatus
+
+User 'dbo' does not have permission to run DBCC TRACEON
+
+99. Can I see the log space in Azure databases?
+Answer: Yes. You can see by running the query below: DBCC SQLPERF (LOGSPACE)
+
+100. Can I see the last log backup of the Azure database?
+Answer: Yes. You can by using below query. sys. databases and sys.dm_db_log_stats
+
