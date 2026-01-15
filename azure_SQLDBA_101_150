@@ -1,0 +1,253 @@
+101. Can we create extended events in Azure SQL Server?
+Answer: Yes. We can create extended events, and we can store the information in Azure Storage. Deadlock capture, we can do the same.
+
+102. You're moving an application and database to Azure, but your database is currently 62TB and will continue to grow. You don't currently use any instance-scoped features. 
+Which Azure SQL deployment option will be easiest to use?
+
+    SQL Server in an Azure virtual machine
+    Azure SQL Managed Instance
+    Azure SQL Database, single database
+    Azure SQL Database, elastic database pool
+Answer: Azure SQL Database, single database Azure SQL Database, single database, is currently the only deployment option that supports databases of that size, specifically with the Hyperscale service tier. 
+If Azure SQL Managed Instance supports Hyperscale in the future, because the application doesn't currently need any instance-scoped features, Azure SQL Database might still be the right option.
+
+103. Imagine you have azure sql database with the serverless compute tier database deployed and an autopause delay of two hours. After two hours of no activity, what happens to your database and incurred charges?
+     Azure will pause your database to stop compute costs and charge you only for storage.
+     Database resources are reduced to a lower service tier to reduce costs.
+Answer: Azure will pause your database to stop compute costs and charge you only for storage. 
+To reduce your costs during times of inactivity, Azure will pause the compute resources and will charge only for storage during this time.
+
+104. Which of the following options have limits depending on your deployment option and service tier?
+      Size of tempdb
+      Max log size
+      Backup retention
+      All of the above
+Answer: All of the above Resource limits include memory, max log size, size of tempdb, max concurrent workers, and backup retention.
+
+105. For verifying deployments, some new queries are specific to Azure SQL Database and Azure SQL Managed Instance. Which of the following queries are available only for Azure SQL?
+            SELECT * FROM sys.dm_os_schedulers
+            SELECT * FROM sys.dm_user_db_resource_governance
+            SELECT * FROM sys.dm_exec_requests
+            SELECT * FROM sys.dm_os_process_memory
+Answer: SELECT * FROM sys.dm_user_db_resource_governance
+This query will return the configuration and capacity settings used by resource governance mechanisms in the current database or elastic pool.
+
+106. Consider this scenario: you want to migrate to the cloud, but you use a third-party application that requires access to the operating system (OS). Which Azure SQL deployment option will be easiest to use?
+SQL Server in an Azure virtual machine
+Azure SQL Managed Instance
+Azure SQL Database, single database
+Azure SQL Database, elastic database pool
+
+Answer: A) SQL Server in an Azure virtual machine Correct! Only SQL Server in an Azure virtual machine gives you access to the underlying OS. 
+In the PaaS deployment options, the OS is abstracted away from you, meaning Azure manages it, but you can't access it.
+
+107. Consider this scenario: you want to migrate to the cloud and remove some of the management associated with SQL Server, but your application uses CLR and Service Broker capabilities from SQL Server. 
+Which Azure SQL deployment option will be easiest to use?
+      SQL Server in an Azure virtual machine
+      Azure SQL Managed Instance
+      Azure SQL Database, single database
+      Azure SQL Database, elastic database pool
+Answer: Azure SQL Managed Instance is the only PaaS service that supports instance-scoped features like CLR and Service Broker.
+The first answer choice is also correct, but it doesn't provide the benefits that PaaS can offer.
+
+108. How to restore the DB from one instance to another instance in a managed instance?
+Answer: Point-in-time restore to SQL Managed Instance has the following limitations:
+When you're restoring from one instance of SQL Managed Instance to another, both instances must be in the same subscription and region. Cross-region and cross-subscription restores aren't currently supported.
+Point-in-time restore of a whole SQL Managed Instance is not possible. This article explains only what's possible: point-in-time restore of a database that's hosted on SQL Managed Instance.
+
+Restore the existing DB to the same instance of SQL MI | Restore the existing DB to another SQL MI | Restore the dropped DB to the same SQL MI | Restore the dropped DB to another SQL MI
+Azure portal           Yes                                              No                                        Yes                                    No
+Azure CLI              Yes                                              Yes                                       No                                     No
+PowerShell             Yes                                              Yes                                       Yes                                    Yes
+
+109. How can I check which time zone my MI is in? Also, is it possible to set the time zone?
+Answer: Currently, Managed Instance is configured in the UTC zone. When you use the built-in functions such as GETDATE(), it will return UTC date/time values. 
+There is no indication yet as to whether you will be able to set the time zone in the future.
+
+110. Is it possible to change the collation level on MI? So we are using Windows now, collation level Latin1_General_CI_AS; will this be the same as the default collation?
+Answer: Presently, Managed Instance uses a default collation of SQL_Latin1_General_CP1_CI_AS. It is currently not possible for us to alter the default collation. 
+There is no indication at the moment that this will change. You can create a database with a non-default collation. However, be aware that this can result in collation conflicts for processes that use TempDB.
+
+111. If, for some reason, I want to migrate from MI back to on-prem, backup restore will not work, correct?
+Answer: Yes, you are correct. There is no way we can restore a database backup from Managed Instance to retail SQL Server. You have two main methods presently for getting data out of Managed Instance:
+         1. Script schema, transfer data via SSIS/ADF/BCP
+         2. Set up Transactional Replication with the Subscriber on-premises
+
+112. Is there an equivalent of the SQL Server System Admin server role in MI?
+Answer: Yes, Managed Instance has a Sysadmin role that has the same properties as the sysadmin role in retail SQL Server.
+
+113. Do you know if I can use SQL Profiler for performance tracking?
+     Yes, SQL Profiler is supported for SQL Managed Instance. For more details, see SQL Profiler.
+
+114. Are Database Advisor and Query Performance Insight supported for Managed Instance databases?
+     No, they are not supported. You can use DMVs and Query Store together with SOL Profiler and XEvents to monitor your databases.
+
+115. Can I create metric alerts on SQL Managed Instance?
+    Yes. For instructions, see Create alerts for SQL Managed Instance.
+
+116. Can I create metric alerts on a database in a managed instance?
+    You cannot; alerting metrics are available for managed instances only. Alerting metrics for individual databases ina  managed instance are not available.
+
+117. Is the backup storage deducted from my managed instance storage?
+No, backup storage is not deducted from your managed instance storage space. The backup storage is independent of the instance storage space, and it is not limited in size. 
+Backup storage is limited by the time period to retain the backup of your instance databases, configurable up to 35 days. For details, see Automated backups.
+
+118. How can I see when automated backups are made on my managed instance?
+To track when automated backups have been performed on a Managed Instance, see How to track the automated backup for an Azure SQL Managed Instance.
+
+119. Is on-demand backup supported?
+Yes, you can create a copy-only full backup in their Azure Blob Storage, but it will only be restorable in the Managed Instance. 
+For details, see Copy-only backup. However, a copy-only backup is impossible if the database is encrypted by service-managed TDE since the certificate used for encryption is inaccessible. 
+In such a case, use the point-in-time-restore feature to move the database to another SQL Managed Instance, or switch to a customer-managed key.
+
+120. Is native restore (from .bak files) to Managed Instance supported?
+Yes, it is supported and available for SQL Server 2005+ versions. To use native restore, upload your .bak file to Azure blob storage and execute T-SQL commands. 
+
+121. Is the sysadmin server role available for SQL Managed Instance?
+Yes, customers can create logins that are members of the sysadmin role. Customers who assume the sysadmin privilege are also assuming responsibility for operating the instance, 
+which can negatively impact the SLA commitment. To add login to the sysadmin server role, see Azure AD authentication.
+
+122. Is Transparent Data Encryption supported for SQL Managed Instance?
+Yes, Transparent Data Encryption is supported for SQL Managed Instance. For details, see Transparent Data Encryption for SQL Managed Instance.
+
+123. Can I leverage the "bring your own key" model for TDE?
+Yes, Azure Key Vault for BYOK scenario is available for Azure SQL Managed Instance. For details, see Transparent Data Encryption with customer-managed key.
+
+124. Can I migrate an encrypted SQL Server database?
+Yes, you can. To migrate an encrypted SQL Server database, you need to export and import your existing certificates into Managed Instance, then take a full database backup and restore it in Managed Instance.
+
+You can also use Azure Database Migration Service to migrate the TDE-encrypted databases.
+
+125. How can I configure TDE protector rotation for SQL Managed Instance?
+You can rotate the TDE protector for the Managed Instance using Azure Cloud Shell. For instructions, see Transparent Data Encryption in SOL Managed Instance using your own key from Azure Key Vault.
+
+126. Can I restore my encrypted database to SQL Managed Instance?
+Yes, you don't need to decrypt your database to restore it to SQL Managed Instance. You do need to provide a certificate/key used as the encryption key protector on the source system to
+SQL Managed Instance to be able to read data from the encrypted backup file. There are two possible ways to do it:
+. Upload certificate-protector to SQL Managed Instance. It can be done using PowerShell only. The sample script describes the whole process.
+. Upload asymmetric key-protector to Azure Key Vault and point SQL MI to it. This approach resembles the bring-your-own-key (BYOK) TDE use case that also uses Key Vault integration to store the encryption key. 
+If you don't want to use the key as an encryption key protector, and just want to make the key available for SQL MI to restore encrypted database(s). 
+Follow the instructions for setting up BYOK TDE, and don't check the checkbox Make the selected key the default TDE protector.
+
+Once you make the encryption protector available to SQL Managed Instance, you can proceed with the standard database restore procedure.
+
+127. What purchasing models are available for SQL Managed Instance?
+     SQL Managed Instance offers vCore-based purchasing model.
+
+128. What cost benefits are available for SQL Managed Instance?
+    You can save costs with the Azure SQL benefits in the following ways:
+
+. Maximize existing investments in on-premises licenses and save up to 55 percent with Azure Hybrid Benefit.
+. Commit to a reservation for compute resources and save up to 33 percent with Reserved Instance Benefit. Combine this with Azure Hybrid benefit for savings up to 82 percent.
+. Save up to 55 percent versus list prices with Azure Dev/Test Pricing Benefit that offers discounted rates for your ongoing development and testing workloads.
+
+129. Who is eligible for the Reserved Instance benefit?
+To be eligible for the Reserved Instance benefit, your subscription type must be an enterprise agreement (offer numbers: MS-AZR-0017P or MS-AZR-0148P)
+an individual agreement with pay-as-you-go pricing (offer numbers: MS-AZR-0003P or MS-AZR-0023P). 
+
+130. Is it possible to cancel, exchange or refund reservations?
+ You can cancel, exchange or refund reservations with certain limitations. For more information, see Self-service exchanges and refunds for Azure Reservations.
+
+131. Who should use the Hyperscale service tier
+The Hyperscale service tier is intended for customers who have large on-premises SQL Server databases and want to modernize their applications by moving to the cloud.
+for customers who are already using Azure SQL Database and want to significantly expand the potential for database growth. 
+Hyperscale is also intended for customers who seek both high performance and high scalability. With Hyperscale, you get:
+· Database size up to 100 TB
+· Fast database backups regardless of database size (backups are based on storage snapshots)
+· Fast database restores regardless of database size (restores are from storage snapshots)
+. Higher log throughput regardless of database size and the number of vCores
+. Read Scale-out using one or more read-only replicas, used for read offloading and as hot standbys.
+. Rapid scale-up of compute, in constant time, to be more powerful to accommodate the heavy workload, and then scale down, in constant time. 
+   This is similar to scaling up and down between a P6 and a P11, for example, but much faster, as this is not a size of data operation.
+
+132. What regions currently support Hyperscale
+The Hyperscale service tier is currently available in the regions listed under Azure SQL Database Hyperscale Overview.
+
+133. Can I create multiple Hyperscale databases per server
+Yes. For more information and limits on the number of Hyperscale databases per server, see SQL Database resource limits for single and pooled databases on a server.
+
+134. What are the performance characteristics of a Hyperscale database
+The Hyperscale architecture provides high performance and throughput while supporting large database sizes.
+
+135. What is the scalability of a Hyperscale database
+Hyperscale provides rapid scalability based on your workload demand.
+· Scaling Up/Down
+With Hyperscale, you can scale up the primary compute size in terms of resources like CPU and memory, and then scale down, in constant time. 
+Because the storage is shared, scaling up and scaling down is not a size of data operation.
+
+. Scaling In/Out
+With Hyperscale, you also get the ability to provision one or more additional compute replicas that you can use to serve your read requests. 
+This means that you can use these additional compute replicas as read-only replicas to offload your read workload from the primary compute. 
+In addition to read-only, these replicas also serve as hot-standbys in case of a failover from the primary.
+
+
+Provisioning of each of these additional compute replicas can be done in constant time and is an online operation. 
+You can connect to these additional read-only compute replicas by setting the ApplicationIntent argument on your connection string to ReadOnly.
+Any connections with the ReadOnly application intent are automatically routed to one of the additional read-only compute replicas.
+
+136. Can I mix Hyperscale and single databases in a single server?
+ Yes, you can.
+
+137. Does Hyperscale require my application programming model to change
+No, your application programming model stays as is. You use your connection string as usual and the other regular ways to interact with your Hyperscale database.
+
+138. What transaction isolation level is the default in a Hyperscale database
+On the primary replica, the default transaction isolation level is RCSI (Read Committed Snapshot Isolation). On the Read Scale-out secondary replicas, the default isolation level is Snapshot.
+
+139. Can I bring my on-premises or laaS SQL Server license to Hyperscale?
+Yes, Azure Hybrid Benefit is available for Hyperscale. Every SQL Server Standard core can map to 1 Hyperscale vCores. Every SQL Server Enterprise core can map to 4 Hyperscale vCores. 
+You don't need a SQL license for secondary replicas. The Azure Hybrid Benefit price will be automatically applied to Read Scale-out (secondary) replicas.
+
+140. What kind of workloads is Hyperscale designed for?
+Hyperscale supports all SQL Server workloads, but it is primarily optimized for OLTP. You can bring Hybrid (HTAP) and Analytical (data mart) workloads as well.
+
+141. How can I choose between Azure Synapse Analytics and Azure SQL Database Hyperscale
+If you are currently running interactive analytics queries using SQL Server as a data warehouse, Hyperscale is a great option because you can host small and mid-size data warehouses (such as few TB up to 100 TB) 
+at a lower cost, and you can migrate your SQL Server data warehouse workloads to Hyperscale with minimal T-SQL code changes.
+If you are running data analytics on a large scale with complex queries and sustained ingestion rates higher than 100 MB/s, or using Parallel Data Warehouse (PDW), Teradata, or other
+Massively Parallel Processing (MPP) data warehouses, Azure Synapse Analytics may be the best choice.
+
+142. Can I pause my computer at any time
+Not at this time, however, you can scale your compute and number of replicas down to reduce cost during non-peak times.
+
+143. Can I provision a compute replica with extra RAM for my memory-intensive workload
+No. To get more RAM, you need to upgrade to a higher compute size. For more information, see Hyperscale storage and compute sizes.
+
+144. Can I provision multiple compute replicas of different sizes
+No.
+
+145. How many Read Scale-out replicas are supported
+The Hyperscale databases are created with one Read Scale-out replica (two replicas, including primary) by default. 
+You can scale the number of read-only replicas between 0 and 4 using the Azure portal or the REST API.
+
+146. For high availability, do I need to provision additional compute replicas
+In Hyperscale databases, data resiliency is provided at the storage level. You only need one replica to provide resiliency. 
+When the compute replica is down, a new replica is created automatically with no data loss.
+
+However, if there's only one replica, it may take some time to build the local cache in the new replica after failover. 
+During the cache rebuild phase, the database fetches data directly from the page servers, resulting in higher storage latency and degraded query performance.
+
+For mission-critical apps that require high availability with minimal failover impact, you should provision at least 2 compute replicas, including the primary compute replica. 
+This is the default configuration. That way there is a hot-standby replica available that serves as a failover target.
+
+147. What is the maximum database size supported with Hyperscale for AZURE Sql DB?
+     100 TB
+
+148. What is the size of the transaction log with Hyperscale
+The transaction log with Hyperscale is practically infinite. You do not need to worry about running out of log space on a system that has a high log throughput. However, log generation
+rate might be throttled for continuously aggressive writing workloads. The peak sustained log generation rate is 100 MB/s.
+
+149. Does my tempdb scale as my database grows
+Your tempdb database is located on local SSD storage and is sized proportionally to the compute size that you provision. 
+Your tempdb is optimized to provide maximum performance benefits. The tempdb size is not configurable and is managed for you.
+
+Does my database size automatically grow, or do I have to manage the size of data files?
+
+Your database size automatically grows as you insert/ingest more data.
+
+150. What is the smallest database size that Hyperscale supports or starts with
+40 GB. A Hyperscale database is created with a starting size of 10 GB. 
+Then, it starts growing by 10 GB every 10 minutes, until it reaches the size of 40 GB. Each of these 10 GB chunks is allocated to a different page server to provide more IOPS and higher I/O parallelism.
+Because of this optimization, even if you choose an initial database size smaller than 40 GB, the database will grow to at least 40 GB automatically.
+
+
