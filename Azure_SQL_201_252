@@ -1,0 +1,329 @@
+201. How much delay is there going to be between the primary and secondary compute replicas
+Data latency from the time a transaction is committed on the primary to the time it is readable on a secondary depends on current log generation rate, transaction size, load on the replica, and other factors. 
+Typical data latency for small transactions is in tens of milliseconds; there is no upper bound on data latency. Data on a given secondary replica is always transactionally consistent. 
+However, at a given point in time, data latency may be different for different secondary replicas. Workloads that need to read committed data immediately should run on the primary replica.
+
+202. Is In-Memory OLTP available on SQL Database?
+The quick answer is 'yes' (at this moment it is in preview), as with most things related to SQL Server, it depends. In this special case, it depends on your service tier. 
+If you try to create a memory-optimized table on a SQL Database based on a tier other than Premium, this is what youʼl get:
+Msg 40536, Level 16, State 2, Line 1
+MEMORY_OPTIMIZED tables are not supported in this service tier of the database. See Books Online for ms support in different service tiers of Windows Azure SQL Database.
+It is also possible to get this error message if your database was created before the introduction of the In-memory OLTP preview on Azure. 
+A more elegant way to find you if your database supports this feature is by running the following:
+
+SELECT DatabasePropertyEx(DB_Name(), 'IsXTPSupported");
+
+If the result of the query is "0" (zero), this means that In-Memory OLTP is not supported, you can start creating your memory-optimized tables and natively compiled objects.
+
+To create a memory-optimized table, just add the option MEMORY_OPTIMIZED=ON, as follows:
+
+CREATE TABLE <TABLE NAME>
+<columns>
+WITH (MEMORY_OPTIMIZED = ON);
+
+203. How would I partition an Azure SQL database?
+If you are used to the traditional partitioning on SQL Server (on-premise), you may be wondering how to work with this on SQL Database, as we have no control over files and filegroups.
+
+The answer is simple: map all the partitions to the "PRIMARY" filegroup. This way, the partition scheme will look like the following:
+
+CREATE PARTITION SCHEME < PARTITION SCHEME NAME>
+AS PARTITION <PARTITION FUNCTION NAME>
+ALL TO ([PRIMARY]);
+GO
+
+Under the hood, the storage engine is balancing the load in order to provide the best performance. This way, even in Azure, you can use partitioning to achieve scalability, performance and availability.
+
+204. What are the advantages of the Azure Resource Manager?
+Azure Resource Manager enables users to manage their usage of application resources. A few of the advantages of Azure Resource Manager are:
+. ARM helps deploy, manage, and monitor all the resources for an application, a solution, or a group
+. Users can be granted access to the resources they require
+. It obtains comprehensive billing information for all the resources in the group
+. Provisioning resources is made much easier with the help of templates
+
+205. With respect to Azure, what are public, private, and hybrid clouds?
+Public Cloud - Every component that the user is using in his/ her application is running only on Azure
+Private Cloud - Azure services are being run within an on-premises data center, or on-premises data centers are used by the user to host systems or applications.
+Hybrid Cloud - Combines features of both Public and Private clouds. Some of the user's components are being run on Azure, and others within an on-premises datacenter
+
+206. Can we scale down Azure SQL DB from Hyper-scale to other vCore or DTU models?
+No. Now, you can't move a Hyperscale database to another service tier.
+
+207. Is the Azure SQL database offline while the scaling-up/down operation is in progress?
+No. The scaling up and down will always be online.
+
+208. Does the size of my tempdb database cache also grow as the compute is scaled up?
+Yes. The tempdb database size on compute nodes will scale up automatically as the number of cores is increased.
+
+209. Can I create a dedicated endpoint for a Read Scale-out replica?
+No. You can only connect to Read Scale-out replicas by specifying ApplicationIntent=ReadOnly.
+
+210. Can I add indexes and views to my secondary compute replicas?
+No. Azure databases have shared storage, meaning that all compute replicas see the same tables, indexes, and views. 
+If you want additional indexes optimized for reads on secondary, you must add them on the primary.
+
+Recent updates from AZURE
+. The serverless model is added to Hyper scale also. Earlier, this option was only in General purpose model
+. To create a managed instance, it's now taking only 2 to 3 hours, but earlier it used to take 9 hours
+
+211. How would you optimize Azure SQL cost for a development team using it only 9 AM-5 PM?
+. Use the Serverless tier with auto-pause after 1 hour
+. Or schedule compute scale-down using automation accounts/Runbooks
+. Consider Dev/Test pricing if eligible (up to 55% cost savings)
+
+212. How does SQL Database Serverless automatically resume from a paused state?
+. Serverless databases monitor connection attempts
+. On the first valid request, it automatically resumes
+. There might be a few seconds' delay depending onthe  compute resumption time
+
+213. Can you scale DTUs up and down programmatically?
+  . Yes, using Azure PowerShell, CLI, or ARM templates.
+Example (PowerShell): Set-AzSqlDatabase -ResourceGroupName "MyRG" -ServerName "MyServer" -DatabaseName "MyDB"-Edition "Standard" -RequestedServiceObjectiveName "S3"
+
+214. What is the role of RBPEX cache in Hyperscale architecture?
+RBPEX (Resilient Buffer Pool Extension) is an additional caching layer in Hyperscale databases located on SSDs.
+. It improves read performance by caching frequently accessed data
+. Automatically scales with compute size
+. Reduces fetch operations from remote storage
+
+215. How does Azure SQL handle throttling, and what is the best way to identify it?
+Azure SQL uses throttling to manage excessive resource consumption.
+You can detect throttling using:
+. sys.event_log for throttle events
+'  Extended Events or DMVs like sys.dm_exec_requests (look for wait_type = RESOURCE_SEMAPHORE, etc.)
+
+216. Explain a scenario where Query Store might stop collecting data.
+     . If the Query Store max size is reached (default 100 MB), it enters read-only mode.
+     . Fix by increasing size:
+ALTER DATABASE MyDB
+SET QUERY_STORE (MAX_STORAGE_SIZE_MB = 512);
+
+217. What's the role of compatibility level in Azure SQL Database?
+It affects how certain SQL behaviors/functions are interpreted.
+. Use ALTER DATABASE [DBName] SET COMPATIBILITY_LEVEL = 150;
+. You can control optimizer behavior without upgrading the engine
+
+218. How do you track who dropped a table or modified a schema in Azure SQL Database?
+      . Use Azure SQL Auditing - logs to Storage/Log Analytics/Event Hub
+      . Create an audit policy to capture SCHEMA_OBJECT_CHANGE_GROUP Query via:
+
+219. How do you prevent brute-force attacks on Azure SQL DB?
+      . Use firewall rules to restrict IP access
+      . Enforce Azure AD authentication instead of SQL logins
+      . Enable Advanced Threat Protection (ATP) to detect unusual logins
+      . Configure lockout policies using Conditional Access (if using AAD)
+
+220. What is Automatic Plan Correction in Azure SQL, and when should it be enabled?
+  . Automatically forces the last known good plan when a regressed plan causes performance issues.
+  . Best used for stable workloads. Enable via:
+ALTER DATABASE current SET AUTOMATIC_TUNING (FORCE_LAST_GOOD_PLAN = ON)
+
+221. Can we configure TempDB in Azure SQL Database?
+  . No, for PaaS Azure SQL DBs, TempDB is auto-managed
+  . In SQL MI and SQL VM, you can customize TempDB settings (size, files, autogrowth)
+
+222. What is the role of sys.dm_database_scoped_configurations?
+This DMV lets you configure and view settings that apply at the database level, such as:
+ --MAXDOP
+ --LEGACY_CARDINALITY_ESTIMATION
+ --OPTIMIZE_FOR_AD_HOC_WORKLOADS
+   Example: ALTER DATABASE SCOPED CONFIGURATION SET MAXDOP = 2;
+
+223. What is a user-assigned managed identity, and how is it used in Azure SQL?
+. A user-assigned identity is an Azure AD identity created as a standalone resource.
+. Azure SQL can use it for accessing Key Vault, Blob Storage, or SQL MI to MI communication.
+. Used in external authentication scenarios (e.g., ADF connecting to SQL MI).
+
+224. What is Query Hints injection, and how to handle it in Azure SQL?
+. Query hints like OPTION (RECOMPILE) or MAXDOP can impact performance.
+. In Azure SQL: o Avoid hint overuse in ad-hoc queries
+                o Use Query Store Hints (Preview) to force/override execution plan behavior without changing app code:
+EXEC sp_query_store_set_hints @query_id = 42, @hints = N'OPTION(HASH JOIN)';
+
+225. Can I force queries to run on read-only replicas in Hyperscale/BC tiers?
+  . Yes, using ApplicationIntent=ReadOnly in the connection string
+  . Also: 
+      Set read_scale_out=ON
+      Ensure the workload can tolerate slightly stale data
+
+226. What are common causes of high write latency in Azure SQL Database?
+High write latency can be caused by:
+. Excessive logging from large inserts/updates
+. Lack of proper indexing is causing table scans
+. Contention in tempdb (especially for sorts and spills)
+. Storage tier limits are being reached (in Premium or Business Critical tiers). You can monitor latency via sys.dm_db_resource_stats and use Query Store for deeper insight.
+
+227. What are the limitations of using triggers in Azure SQL Database?
+      . Triggers cannot access external systems (e.g., via linked servers)
+      . Recursive triggers are limited to 32 levels of nesting
+      . Overuse of triggers may lead to hidden performance bottlenecks
+      . In serverless or scaled-out environments, triggers can create inconsistent performance under concurrency
+
+228. How do you archive historical data from a production Azure SQL database?
+. Use partitioning to switch old partitions out to an archive table
+. Export data to Azure Data Lake or Blob using Azure Data Factory
+. Use SELECT INTO Or INSERT INTO ... WHERE to move data to another archive DB
+. Consider using cold storage formats (Parquet/CSV) if moved outside SQL
+
+229. How do you implement row-level security in Azure SQL DB?
+1. Create a security predicate function that returns 1 for allowed rows
+2. Create a security policy using that function. 
+Example:
+CREATE FUNCTION fn_securitypredicate(@Region AS sysname)
+RETURNS TABLE
+WITH SCHEMABINDING
+AS
+RETURN SELECT 1 AS fn_securitypredicate_result WHERE @Region = USER_NAME();
+CREATE SECURITY POLICY SalesFilter
+ADD FILTER PREDICATE dbo.fn_securitypredicate(Region) ON dbo.Sales
+WITH (STATE = ON);
+
+
+230. What are the key differences between Azure SQL Database, Managed Instance, and SQL Server Azure VM (laaS)?
+Feature                                Azure SQL DB                 Managed Instance (MI)          SQL Server on VM (IaaS)
+  Instance-level features-------------Not supported-----------------Supported ---------------------Fully supported
+  OS-level access---------------------No ---------------------------No ----------------------------Yes
+  SQL Agent---------------------------Limited via Elastic Jobs -----Available ---------------------Full SQL Agent
+  Linked Servers----------------------No ---------------------------Supported ---------------------Fully supported
+  Maintenance/Backups-----------------Fully Managed ----------------Fully managed -----------------DBA managed
+  Use case----------------------------Modern apps, lightweight -----Lift & shift without changes---Full control, legacy compatibility.
+
+231. What are the best scenarios for choosing SQL Server on laaS over PaaS?
+Choose SQL Server on laaS (VMs) when:
+. You need OS-level access or run third-party software on the server
+. Your app depends on features not available in Azure SQL DB or MI (e.g., FileStream, SSRS, or SQ Server Agent custom jobs)
+. You're migrating large legacy environments with minimal refactoring
+. You require cross-database transactions or SQL Server clustering
+
+232. How do backup and restore options differ between Azure SQL DB, MI, and laaS?
+Feature                Azure SQL DB          Managed Instance (MI)       SQL on IaaS (VM)
+Manual backups---------Not allowed ----------Copy-only backups to Blob---Full/Log backups to disk/blob
+PITR (Point-in-time)---Automatic-------------Automatic-------------------Requires DBA scripting
+.bak file restore------Not supported---------Supported from URL----------Native restore supported
+                                             (Only Full Backup)
+
+233. What is the best way to monitor and alert on performance issues in SQL on Azure VM (laaS)?
+           . Use Azure Monitor for VMs
+           . Enable SQL Insights extension to track:
+               o Query performance
+               o TempDB usage
+               o Blocking and waits
+           . Configure alerts using Log Analytics queries,
+           e.g .:Kusto: Perf | where ObjectName == "SQLServer:Memory Manager" and CounterName == "Target Server Memory (KB)"
+
+
+234. How do you handle patching in Managed Instance vs laaS?
+       . Managed Instance: Patching is automatic and non-intrusive
+       . SQL Server on laaS: DBA must schedule and apply patches manually (Windows Updates + SQL CUs)
+       . Use Maintenance Windows in Azure to control MI patching time
+
+235. Can SQL Server in laaS be paused like Serverless Azure SQL DB?
+No. SQL Server on VM cannot be "paused," but you can automate daily shutdown/startup using Azure Automation or Logic Apps to save costs during non-business hours.
+
+236. Can you control maintenance windows in Azure SQL MI or SQL DB?
+. Azure SQL DB: Maintenance is auto-managed, with limited control
+. Azure SQL MI: You can configure a maintenance window to control when patching occurs
+  Example: "Patch between 2AM-5AM on Saturday"
+
+237. What are the main tools available for performance tuning in Azure SQL Database?
+      . Query Store - Captures query performance over time
+      . DMVs- For live session info, waits, IO stats
+      . Azure Metrics - To monitor DTU/vCore usage
+      . Performance Insight - High-level portal view
+      . Automatic Tuning - Can auto-apply index and plan fixes
+      . Extended Events - For custom performance tracing
+
+238. How can you identify TempDB contention in Managed Instance or SQL on VM?
+      Use sys.dm_exec_requests, sys.dm_os_wait_stats for PAGELATCH_ waits*
+        . Check sys.dm_db_file_space_usage and sys.dm_db_session_space_usage Fixes:
+        . Add more tempdb files (equal to number of cores / 4)
+        . Optimize spill-heavy queries
+        . Use trace flags in laaS (e.g., TF 1117, 1118)
+
+239. How do you track query regressions over time in Azure SQL Database?
+Use Query Store to:
+. Compare plans using sys.query_store_query_text, sys.query_store_plan
+. Identify plan changes that caused degradation
+. Fix regressions with sp_query_store_force_plan
+
+240. How do you monitor IO bottlenecks in SQL Server on VM (laaS)?
+. Use PerfMon counters: Disk Reads/sec, Disk Writes/sec, Avg Disk sec/Read
+. Check sys.dm_io_virtual_file_stats
+. Ensure you use Premium SSDs or Ultra Disk for high IOPS workload
+
+241. What options are available to optimize read-intensive workloads in Azure SQL DB?
+. Use read-scale out replicas (Business Critical/Hyperscale)
+. Set ApplicationIntent=ReadOnly in the connection string
+. Use indexed views, covering indexes, and batch-mode execution if available
+
+242. How would you handle parameter sniffing issues in Azure SQL Database?
+. Use OPTIMIZE FOR hints or RECOMPILE for one-time queries
+. Use Query Store to detect regressions and force the optimal plan
+. Enable parameterization = forced (if applicable)
+. In MI or laaS, use sp_create plan guide to control plan generation
+
+243. How do you investigate a query that performs well in laas but poorly in Azure SQL DB?
+Answer:
+. Compare execution plans using Query Store
+Check differences in:
+    o Indexing and stats freshness
+    o Resource limits (DTU/vCore model vs full CPU)
+    o Query processor features (batch mode support)
+. Tune based on actual vs estimated rows
+
+244. What is batch mode execution, and how does it affect performance?
+Batch mode allows SQL Server to process rows in chunks rather than row-by-row (row mode).
+. Greatly improves performance for analytic workloads
+. Available in Azure SQL DB Hyperscale, MI, and SQL 2019+
+. Use columnstore indexes or enable Batch Mode on Rowstore (with compatibility level 150+)
+
+245. A query runs fine in the morning but degrades later in the day. What's your approach?
+. Check Query Store for plan changes or regressions
+. Look for:
+          o Parameter sensitivity
+          o Index fragmentation
+          o Memory pressure or CPU contention
+. Analyze concurrent workload using sys.dm_exec_requests and sys.dm_os_wait_stats
+
+246. How can you identify queries causing memory grants to spill to tempdb?
+. Use sys.dm_exec_query_memory grants and check is_small_query and granted_memory_kb
+. Use Query Store Wait Stats and look for RESOURCE_SEMAPHORE, HADOOP_QUERY_MEMORY
+. Optimize joins, indexing, and row estimates to avoid excessive grants
+
+247. What are the most common wait types in Azure SQL DB, and how do you interpret them?
+   . SOS_SCHEDULER_YIELD: CPU pressure
+   . PAGEIOLATCH _*: Slow disk IO or missing indexes
+   . ASYNC_NETWORK_IO: App/client-side bottleneck
+   . CXPACKET: Parallelism imbalance
+Use sys.dm_os_wait_stats to view and sys.dm_exec_requests to correlate with active queries.
+
+248. A query uses a non-optimal index despite better options. What could be the reason?
+. Outdated statistics
+. Parameter sniffing
+. The index has a higher cost due to the estimated row count
+. Use Query Store to compare plans
+. Use query hints or index hints only when necessary, after investigation
+
+249. How can you ensure optimal statistics in Azure SQL DB without manual intervention?
+. Ensure AUTO_CREATE_STATISTICS and AUTO_UPDATE_STATISTICS are ON
+. Enable AUTO_UPDATE_STATISTICS_ASYNC for larger datasets
+. For MI/laaS, consider scheduled manual updates with FULLSCAN if needed
+
+250. How do you detect and address ghost record cleanup issues in SQL Server on Azure VMs?
+. Ghost records are marked deleted, but not physically removed
+. Check sys.dm_db_index_physical_stats for excessive fragmentation
+. Use DBCC SHOWCONTIG or wait stats like GHOST_CLEANUP
+. Ghost cleanup runs in the background,d but may need index rebuilds if backlog builds up
+
+251. What's the best way to handle large table scans in read-heavy environments?
+. Add covering indexes
+. Use partitioning to isolate active vs archive data
+. Optimize queries to be sargable (avoid functions on columns)
+. Offload reads to readable replicas (MI or Hyperscale)
+
+252. How do you interpret warnings in an actual execution plan?
+Look for:
+. Missing Index warnings
+. Residual I/O
+. Operator spilling to tempdb
+. Cardinality estimation issues
+  Warnings are yellow triangles in SSMS and indicate tuning opportunities like stats update or indexing.
