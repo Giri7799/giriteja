@@ -1,0 +1,10 @@
+When a query is written in SSMS, it is first wrapped into TDS (Tabular Data Stream) packets and sent to SQL Server through the protocol layer using Shared Memory, TCP/IP, or Named Pipes. 
+The relational engine then processes the query, where the Command Parser checks syntax and permissions and creates a parse tree, followed by the Algebrizer, which resolves objects and generates a logical query tree.
+The Query Optimizer checks the plan cache in memory; if a matching execution plan exists, it is reused. If multiple execution plans are available, it selects the lowest-cost plan, stores it in the plan cache, 
+and passes it to the Query Executor, which is part of the storage engine, executes the plan by calling access methods. 
+For SELECT queries, the Buffer Manager checks the buffer pool data cache; if the required data page is already in memory, it is reused, it is read from disk (MDF/NDF), stored in the data cache, 
+and then returned to the Query Executor. For INSERT, UPDATE, or DELETE operations, 
+the Transaction Manager coordinates the Lock Manager to acquire locks and the Log Manager to create log records, assign LSNs, and write them to the log buffer in memory. 
+The Buffer Manager loads the data page into the buffer pool, modifies it, and marks it as a dirty page. When the transaction is committed, the Log Manager flushes
+The log buffer is written to the transaction log file (LDF) on disk and waits for the disk write to complete, enforcing the Write-Ahead Logging rule, after which the transaction is committed, and locks are released. 
+Later, during a checkpoint, the Buffer Manager writes the dirty pages from the buffer pool to the data files on disk (MDF/NDF), ensuring durability and recoverability.
