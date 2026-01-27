@@ -1,0 +1,9 @@
+Contained Databases make SQL Server databases more portable and self-sufficient by allowing authentication and settings to live inside the database instead of the instance.
+
+SQL Server Version 	Key Defining Feature
+SQL Server 2014	In-Memory OLTP: A memory-optimized engine designed for high-concurrency transactional workloads.
+SQL Server 2016	Always Encrypted: Client-side encryption that protects data at rest and in transit, ensuring even DBAs cannot view it.
+SQL Server 2017	Linux Support: The first version to run cross-platform on Windows, Linux, and Docker containers.
+SQL Server 2019	Big Data Clusters: Integration with Apache Spark and HDFS for querying large-scale data directly within SQL.
+SQL Server 2022	Azure Synapse Link: Real-time data synchronization between SQL Server and Azure Synapse for near-instant analytics.
+SQL Server 2025	Native Vector Type: Built-in support for storing and searching vector embeddings to power generative AI applications.
