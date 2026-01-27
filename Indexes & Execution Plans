@@ -1,6 +1,4 @@
-Top 50 Interview Q&A: Indexes & Execution Plans in SQL Server
-Indexes
-1. What are indexes in SQL Server and why are they important?
+1. What are indexes in SQL Server, and why are they important?
 •Indexes are database objects that improve the speed of data retrieval.
 •Without indexes, SQL Server scans entire tables (full table scan).
 •With indexes, SQL Server can quickly locate data pages using B-Trees.
@@ -11,10 +9,10 @@ Indexes
 
 3. What is a Heap table?
 •A table without a clustered index.
-•Data is stored unsorted, retrieval is slower.
+•Data is stored unsorted; retrieval is slower.
 •Often leads to forwarding pointers when updated.
 
-4. What are Included Columns in Non-Clustered Indexes?
+4. What are the Included Columns in Non-Clustered Indexes?
 •Columns added to the index leaf-level for covering queries.
 •Improve performance by avoiding key lookups.
 
@@ -153,12 +151,14 @@ oActual Plan: CTRL + M
 •Outdated stats lead to poor plans.
 
 36. How do you update statistics?
-•UPDATE STATISTICS or sp_updatestats.
+•UPDATE STATISTICS, with option fullscan, sample with percent or sp_updatestats
 •Use AUTO UPDATE STATISTICS ON for automatic maintenance.
 
 37. What is the difference between SARGable and Non-SARGable queries?
 •SARGable queries allow index usage (e.g., WHERE column = 5).
 •Non-SARGable (e.g., WHERE YEAR(date) = 2023) forces scans.
+- SARGable queries = index-friendly, faster.
+- Non-SARGable queries = index-unfriendly, slower.
 
 38. How do Hints affect Execution Plans?
 •FORCESEEK, LOOP JOIN, MAXDOP, OPTIMIZE FOR… can override optimizer choices.
@@ -169,8 +169,8 @@ oActual Plan: CTRL + M
 •Reduces compilation overhead.
 
 40. What is Plan Reuse vs Plan Recompilation?
-•Reuse: SQL Server uses cached plan for similar queries.
-•Recompile: SQL Server generates new plan (can be forced with OPTION(RECOMPILE)).
+•Reuse: SQL Server uses a cached plan for similar queries.
+•Recompile: SQL Server generates a new plan (can be forced with OPTION(RECOMPILE)).
 
 41. How do you identify queries with poor plans?
 •Query Store (from SQL Server 2016).
@@ -180,12 +180,12 @@ oActual Plan: CTRL + M
 •SQL Server replaces literal values with parameters to encourage plan reuse.
 
 43. What is Adaptive Query Processing (SQL Server 2017+)?
-•Features like Adaptive Joins, Interleaved Execution, Memory Grant Feedback.
+•Features like Adaptive Joins, Interleaved Execution, and Memory Grant Feedback.
 •Helps optimize execution plan at runtime.
 
 44. What is the difference between Execution Plan Cache Bloat and Plan Pollution?
 •Cache Bloat: Too many single-use plans consume memory.
-•Pollution: Poorly parameterized queries flood cache with variations.
+•Pollution: Poorly parameterized queries flood the cache with variations.
 
 45. What are Trivial Plans vs Full Optimization Plans?
 •Trivial Plan: Simple queries (SELECT * FROM small table).
@@ -195,7 +195,7 @@ oActual Plan: CTRL + M
 •When SQL Server chooses a worse plan after schema/statistics changes.
 •Fix with Query Store Plan Forcing.
 
-47. What are the differences between Estimated Cost Percentages in Execution Plan?
+47. What are the differences between the Estimated Cost Percentages in the Execution Plan?
 •They’re optimizer estimates, not exact runtime CPU/IO usage.
 •Use for relative comparison only.
 
@@ -203,14 +203,14 @@ oActual Plan: CTRL + M
 •Save as .sqlplan file in SSMS.
 •Export XML from DMVs (sys.dm_exec_query_plan).
 
-49. What is a “Tipping Point” in Execution Plan?
-•When optimizer switches from using index seeks to table/index scans.
-•Usually happens when query returns large portion of rows.
+49. What is a “Tipping Point” in the Execution Plan?
+•When the optimizer switches from using index seeks to table/index scans.
+•Usually happens when the query returns a large portion of rows.
 
 50. How do you troubleshoot slow queries using Execution Plans?
 •Steps:
-1.Capture Actual Execution Plan.
-2.Check for scans vs seeks.
-3.Look for key lookups, missing indexes, warnings.
-4.Compare Estimated vs Actual rows.
-5.Fix statistics/indexing/parameterization issues.
+1. Capture Actual Execution Plan.
+2. Check for scans vs seeks.
+3. Look for key lookups, missing indexes, and warnings.
+4. Compare Estimated vs Actual rows.
+5. Fix statistics/indexing/parameterization issues.
