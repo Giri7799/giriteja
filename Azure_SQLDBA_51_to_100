@@ -10,7 +10,7 @@ Answer: Azure tags are name-value pairs that are used to organize resources in t
 Tags can help you to know the actual cost incurred for the specific resources.
 
 54. Do we have ErrorLog in Azure SQL Database?
-Answer: Azure SQL Database doesn't really have its own error log, but you can get by running the below query in the master db.
+Answer: Azure SQL Database doesn't really have its own error log, but you can get by running the below query in the master database.
 Select * from sys.event_log
 It will give you information about the following events:
 
@@ -39,7 +39,7 @@ Answer: You will see below.
 Microsoft SQL Azure (RTM) - 12.0.2000.8 May 15 2020 00:47:08 Copyright (C) 2019 Microsoft
 
 59. Can we keep the Azure DB's in lower versions as we do in on-premise?
-Answer: No. We only have one version (latest always) in azure db, and this will be automatically updated by Microsoft
+Answer: No. We only have one version (the latest always) in the Azure DB, and this will be automatically updated by Microsoft
 
 60. How can one determine whether a deadlock has occurred in a database or not?
 Answer: Run the query in the master database and check for the deadlock info
