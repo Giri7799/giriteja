@@ -3,19 +3,22 @@ Answer: Yes. We can create extended events, and we can store the information in 
 
 102. You're moving an application and database to Azure, but your database is currently 62TB and will continue to grow. You don't currently use any instance-scoped features. 
 Which Azure SQL deployment option will be easiest to use?
-
     SQL Server in an Azure virtual machine
     Azure SQL Managed Instance
     Azure SQL Database, single database
     Azure SQL Database, elastic database pool
-Answer: Azure SQL Database, single database Azure SQL Database, single database, is currently the only deployment option that supports databases of that size, specifically with the Hyperscale service tier. 
-If Azure SQL Managed Instance supports Hyperscale in the future, because the application doesn't currently need any instance-scoped features, Azure SQL Database might still be the right option.
+Answer: The Azure SQL Database (single database) option is currently the only deployment model that can support a database of this size, thanks to the Hyperscale service tier, which allows databases up to 100 TB. 
+Since your application does not rely on any instance-scoped features, Hyperscale provides the simplest and most scalable path forward. 
+Even if Azure SQL Managed Instance adds Hyperscale support in the future, Azure SQL Database would remain a strong choice given your current requirements.
 
 103. Imagine you have azure sql database with the serverless compute tier database deployed and an autopause delay of two hours. After two hours of no activity, what happens to your database and incurred charges?
      Azure will pause your database to stop compute costs and charge you only for storage.
      Database resources are reduced to a lower service tier to reduce costs.
 Answer: Azure will pause your database to stop compute costs and charge you only for storage. 
 To reduce your costs during times of inactivity, Azure will pause the compute resources and will charge only for storage during this time.
+When a serverless Azure SQL Database reaches the two‑hour autopause threshold with no activity, the compute resources are automatically paused. 
+During this paused state, you are no longer billed for compute usage — only for the underlying storage. 
+This mechanism helps minimize costs during periods of inactivity by eliminating compute charges while still retaining your data securely in storage.
 
 104. Which of the following options have limits depending on your deployment option and service tier?
       Size of tempdb
